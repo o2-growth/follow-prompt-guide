@@ -17,7 +17,7 @@ interface CoBrandingProps {
 }
 
 export function CoBranding({ size = "md", variant = "light", className }: CoBrandingProps) {
-  const sepColor = variant === "light" ? "text-foreground/40" : "text-primary-foreground/50";
+  const sepColor = variant === "light" ? "text-foreground/40" : "text-foreground/50";
   const sepSize = size === "sm" ? "text-xs" : size === "md" ? "text-sm" : "text-base";
 
   return (

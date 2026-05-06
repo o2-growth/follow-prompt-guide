@@ -27,7 +27,7 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="gradient-hero text-primary-foreground">
+      <section className="gradient-hero text-foreground">
         <div className="container max-w-6xl py-20 md:py-28">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-medium mb-6">
@@ -36,7 +36,7 @@ export default function Landing() {
             <h1 className="font-serif text-4xl md:text-6xl font-bold leading-tight tracking-tight">
               Transforme visão em <span className="text-accent">plano executável</span> de 5 anos.
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-primary-foreground/80 leading-relaxed">
+            <p className="mt-6 text-lg md:text-xl text-foreground/80 leading-relaxed">
               A plataforma estratégica criada por <strong className="text-accent-foreground">Pedro Albite (O2inc)</strong> — 
               maior CFO-as-a-Service do Brasil — para CEOs de PMEs construírem em 30 minutos 
               o plano completo: visão, OKRs, DRE projetado, estrutura de time e rituais.
@@ -47,12 +47,12 @@ export default function Landing() {
                   Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button asChild variant="outline" size="lg" className="border-foreground/30 text-foreground hover:bg-foreground/10">
                 <Link to="/auth/login">Já tenho conta</Link>
               </Button>
             </div>
-            <p className="mt-3 text-sm text-primary-foreground/60">Sem cadastro de cartão. Acesso pleno.</p>
-            <div className="mt-8 flex flex-wrap gap-6 text-sm text-primary-foreground/70">
+            <p className="mt-3 text-sm text-foreground/60">Sem cadastro de cartão. Acesso pleno.</p>
+            <div className="mt-8 flex flex-wrap gap-6 text-sm text-foreground/70">
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Em português, mobile e desktop</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> PDF completo do plano</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Acesso pleno ao workspace</div>
