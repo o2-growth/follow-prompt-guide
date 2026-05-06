@@ -102,7 +102,7 @@ export default function Landing() {
       <footer className="border-t border-border py-8">
         <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-3">
-            <CoBranding size="sm" variant="light" />
+            <CoBranding size="sm" variant="dark" />
             <span className="hidden md:inline text-muted-foreground/60">·</span>
             <span>© {new Date().getFullYear()} Strategic OS</span>
           </div>
