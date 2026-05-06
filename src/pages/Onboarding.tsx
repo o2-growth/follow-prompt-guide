@@ -242,19 +242,24 @@ export default function Onboarding() {
                 {questions.map((q, i) => (
                   <div key={q.key} className="border border-border rounded-lg p-4">
                     <div className="text-sm font-medium text-foreground mb-3">{i + 1}. {q.prompt}</div>
-                    <RadioGroup
-                      value={answers[q.key] !== undefined ? String(answers[q.key]) : ""}
-                      onValueChange={v => setAnswers({ ...answers, [q.key]: Number(v) })}
-                      className="grid grid-cols-4 gap-2"
-                    >
-                      {SCALE.map(s => (
-                        <Label key={s.v} className={`flex flex-col items-center gap-1 border rounded-md p-2 cursor-pointer text-xs transition-smooth ${answers[q.key] === s.v ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}>
-                          <RadioGroupItem value={String(s.v)} className="sr-only" />
-                          <span className="font-semibold">{s.v}</span>
-                          <span className="text-muted-foreground">{s.label}</span>
-                        </Label>
-                      ))}
-                    </RadioGroup>
+                    <div role="radiogroup" className="grid grid-cols-4 gap-2">
+                      {SCALE.map(s => {
+                        const selected = answers[q.key] === s.v;
+                        return (
+                          <button
+                            type="button"
+                            key={s.v}
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => setAnswers({ ...answers, [q.key]: s.v })}
+                            className={`flex flex-col items-center gap-1 border rounded-md p-2 text-xs transition-smooth focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+                          >
+                            <span className="font-semibold">{s.v}</span>
+                            <span className="text-muted-foreground">{s.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 ))}
               </div>
