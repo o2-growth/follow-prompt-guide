@@ -16,15 +16,12 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border/60 bg-background/80 backdrop-blur sticky top-0 z-30">
+      <header className="border-b border-foreground/10 bg-background/80 backdrop-blur sticky top-0 z-30">
         <div className="container max-w-6xl flex items-center justify-between py-4">
-          <div className="flex flex-col gap-1">
-            <div className="font-serif text-lg font-bold text-primary leading-tight">Strategic OS</div>
-            <CoBranding size="sm" variant="light" />
-          </div>
+          <CoBranding size="sm" variant="dark" />
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm"><Link to="/auth/login">Entrar</Link></Button>
-            <Button asChild size="sm"><Link to="/auth/signup">Criar conta</Link></Button>
+            <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground"><Link to="/auth/signup">Criar conta</Link></Button>
           </div>
         </div>
       </header>

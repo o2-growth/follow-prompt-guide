@@ -17,16 +17,16 @@ export function AuthLayout({ title, subtitle, children, footer }: {
     <div className="min-h-screen grid md:grid-cols-2">
       <div className="hidden md:flex gradient-hero text-primary-foreground p-12 flex-col justify-between">
         <div>
-          <div className="font-serif text-2xl font-bold">Strategic OS</div>
-          <div className="mt-2"><CoBranding size="sm" variant="dark" /></div>
+          <CoBranding size="md" variant="dark" />
+          <div className="font-mono text-[10px] uppercase tracking-widest text-accent mt-4">Strategic OS</div>
         </div>
         <div>
-          <p className="font-serif text-3xl leading-tight max-w-md">
-            "Estratégia sem execução é fantasia. Execução sem estratégia é caos."
+          <p className="font-serif text-4xl leading-[0.95] uppercase max-w-md">
+            Estratégia sem execução é fantasia. <span className="text-accent">Execução sem estratégia é caos.</span>
           </p>
-          <p className="mt-4 text-sm text-primary-foreground/70">— Pedro Albite, CEO O2inc</p>
+          <p className="mt-6 font-mono text-xs uppercase tracking-widest text-primary-foreground/70">— Pedro Albite, CEO O2 Inc.</p>
         </div>
-        <div className="text-xs text-primary-foreground/60">Presente exclusivo da palestra G4</div>
+        <div className="font-mono text-[10px] uppercase tracking-widest text-primary-foreground/60">Presente exclusivo · Palestra G4 Educação</div>
       </div>
       <div className="flex items-center justify-center p-6 md:p-12 bg-background">
         <div className="w-full max-w-sm">
