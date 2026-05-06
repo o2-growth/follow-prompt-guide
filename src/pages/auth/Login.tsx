@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { CoBranding } from "@/components/branding/CoBranding";
+import { LogoG4Tools } from "@/components/branding/LogoG4Tools";
 
 export function AuthLayout({ title, subtitle, children, footer }: {
   title: string; subtitle: string; children: React.ReactNode; footer: React.ReactNode;

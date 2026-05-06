@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Compass, Target, CalendarCheck, FileDown, CheckCircle2 } from "lucide-react";
 import { CoBranding } from "@/components/branding/CoBranding";
+import { LogoG4Tools } from "@/components/branding/LogoG4Tools";
 
 const PILLARS = [
   {
