@@ -2,7 +2,7 @@ import { useTenant } from "@/hooks/useTenant";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gauge } from "lucide-react";
+import { Gauge, TrendingUp } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { EmptyState } from "@/components/common/EmptyState";
 import { cn } from "@/lib/utils";
@@ -42,20 +42,23 @@ export default function Maturity() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Gauge className="h-7 w-7 text-accent" />
+        <TrendingUp className="h-7 w-7 text-accent" />
         <div>
-          <h1 className="font-serif text-3xl font-bold text-primary">Maturidade</h1>
-          <p className="text-muted-foreground">Diagnóstico em 5 dimensões e recomendações priorizadas.</p>
+          <h1 className="font-serif text-3xl font-bold text-primary">Maturidade Financeira</h1>
+          <p className="text-muted-foreground">
+            Diagnóstico aprofundado da saúde financeira da sua empresa, com score e plano de ação.
+          </p>
         </div>
       </div>
 
       {!hasAssessment && (
         <EmptyState
-          icon={Gauge}
-          title="Faça seu diagnóstico 360"
-          description="O diagnóstico completo da sua empresa é feito em nossa plataforma dedicada. Acesse para obter o score de maturidade em todas as áreas e ver as recomendações priorizadas aqui."
-          ctaLabel="Fazer diagnóstico 360"
+          icon={TrendingUp}
+          title="Descubra seu Grau de Maturidade Financeira"
+          description="De forma detalhada e aprofundada, você fará uma pesquisa em nossa plataforma especializada em análise de maturidade financeira. Ao concluir, você recebe seu grau de maturidade e um plano de ação prático para evoluir o financeiro da sua empresa — os resultados aparecem aqui para alimentar suas recomendações priorizadas."
+          ctaLabel="Descobrir minha Maturidade Financeira"
           ctaHref="https://mindful-interface-lab.lovable.app"
+          density="lg"
         />
       )}
 

@@ -4,7 +4,7 @@ import { useTenant } from "@/hooks/useTenant";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Compass, Target, TrendingUp, Users2, CalendarCheck,
-  Gauge, Settings, FileDown, LogOut, Menu, X
+  Gauge, Settings, FileDown, LogOut, Menu, X, Radar
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ const NAV = [
   { to: "/financial", label: "Financeiro", icon: TrendingUp },
   { to: "/team", label: "Time", icon: Users2 },
   { to: "/rituals", label: "Rituais", icon: CalendarCheck },
-  { to: "/maturity", label: "Maturidade", icon: Gauge },
+  { to: "/diagnostic-360", label: "Diagnóstico 360", icon: Radar },
+  { to: "/maturity", label: "Maturidade Financeira", icon: Gauge },
   { to: "/export", label: "Exportar PDF", icon: FileDown },
   { to: "/settings", label: "Configurações", icon: Settings },
 ];
