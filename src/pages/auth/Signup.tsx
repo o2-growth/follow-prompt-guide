@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -9,33 +9,60 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "./Login";
 import { useAuth } from "@/hooks/useAuth";
+import { captureError } from "@/lib/sentry";
+
+// Máscara BR: (11) 99999-9999
+function maskPhone(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10)
+    return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
 
 export default function Signup() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Se já está logado, manda pro callback resolver onboarding/dashboard
   if (!authLoading && user) {
     return <Navigate to="/auth/callback" replace />;
   }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return toast.error("A senha precisa ter ao menos 8 caracteres");
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10)
+      return toast.error("Informe um telefone válido com DDD");
+    if (password.length < 8)
+      return toast.error("A senha precisa ter ao menos 8 caracteres");
+
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email, password,
+      email,
+      password,
       options: {
         emailRedirectTo: window.location.origin + "/auth/callback",
-        data: { full_name: name },
+        data: { full_name: name, phone: phoneDigits },
       },
     });
+
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+
+    // Dispara card no Pipefy (não bloqueante)
+    supabase.functions
+      .invoke("pipefy-create-lead", { body: {} })
+      .catch((err) => captureError(err, { step: "pipefy-create-lead invoke" }));
+
     setLoading(false);
-    if (error) return toast.error(error.message);
     toast.success("Conta criada! Bem-vindo(a).");
     navigate("/auth/callback");
   };
@@ -81,6 +108,19 @@ export default function Signup() {
         <div>
           <Label htmlFor="email">E-mail corporativo</Label>
           <Input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="phone">Telefone (WhatsApp)</Label>
+          <Input
+            id="phone"
+            type="tel"
+            inputMode="tel"
+            required
+            placeholder="(11) 99999-9999"
+            value={phone}
+            onChange={e => setPhone(maskPhone(e.target.value))}
+          />
+          <p className="text-xs text-muted-foreground mt-1">DDD + número.</p>
         </div>
         <div>
           <Label htmlFor="password">Senha</Label>
