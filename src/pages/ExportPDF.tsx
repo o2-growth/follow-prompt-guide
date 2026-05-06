@@ -503,13 +503,13 @@ export default function ExportPDF() {
           <ul className="space-y-2">
             {[
               "Capa branded O2inc × G4 com nome da empresa, CNPJ e data",
-              "Sumário executivo com score, top 3 prioridades e top 3 frameworks recomendados",
-              "Visão estratégica 5 / 3 / 1 ano (incluindo valores)",
-              "OKRs vigentes com Key Results e progresso",
-              "Projeção financeira em 3 cenários (otimista / realista / pessimista) com DRE 5 anos",
-              "Estrutura de time recomendada por área com seniority + headcount sugerido",
-              "Calendário de rituais ativos com agendas",
-              "Análise estratégica gerada por IA: prioridades, frameworks recomendados, OKRs sugeridos, refino de visão, time, projeção ideal e plano de 90 dias personalizado",
+              "Sumário executivo: score de maturidade, top 3 prioridades e top 3 frameworks recomendados",
+              "Norte estratégico 5 / 3 / 1 ano (North Star, missão, valores) — refinado pela IA e amarrado às metas financeiras",
+              "OKRs vigentes + OKRs sugeridos pela IA com KRs mensuráveis e KPIs de acompanhamento",
+              "Projeção financeira 1 / 3 / 5 anos em 3 cenários, com leitura crítica das premissas, riscos e alavancas pela IA",
+              "Roadmap de contratações priorizado pela IA (0-6m, 6-12m, 12-24m) por área e seniority",
+              "Calendário de rituais ativos + ordem de implantação recomendada pela IA",
+              "Plano de ação executivo de 90 dias gerado pela IA com owners e resultados esperados",
             ].map(t => <li key={t} className="flex gap-2"><span className="text-accent">›</span>{t}</li>)}
           </ul>
 
