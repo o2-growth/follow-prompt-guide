@@ -52,10 +52,10 @@ export default function Maturity() {
       {!hasAssessment && (
         <EmptyState
           icon={Gauge}
-          title="Faça seu diagnóstico"
-          description="Responda ao assessment de 5 dimensões (visão, OKRs, rituais, time e financeiro) para ver seu radar de maturidade e receber recomendações priorizadas."
-          ctaLabel="Iniciar diagnóstico"
-          ctaTo="/onboarding"
+          title="Faça seu diagnóstico 360"
+          description="O diagnóstico completo da sua empresa é feito em nossa plataforma dedicada. Acesse para obter o score de maturidade em todas as áreas e ver as recomendações priorizadas aqui."
+          ctaLabel="Fazer diagnóstico 360"
+          ctaHref="https://mindful-interface-lab.lovable.app"
         />
       )}
 
