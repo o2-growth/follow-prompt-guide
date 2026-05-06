@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CoBranding } from "@/components/branding/CoBranding";
+import { LogoO2Icon } from "@/components/branding/LogoO2Icon";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -40,8 +41,13 @@ export default function AppShell() {
       {/* Sidebar (desktop) */}
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
         <div className="px-6 py-6 border-b border-sidebar-border">
-          <div className="font-serif text-xl font-bold text-sidebar-primary">Strategic OS</div>
-          <div className="mt-2"><CoBranding size="sm" variant="dark" /></div>
+          <div className="flex items-center gap-3">
+            <LogoO2Icon size="md" />
+            <div>
+              <div className="font-serif text-base font-bold text-sidebar-primary leading-none">STRATEGIC OS</div>
+              <div className="font-mono text-[10px] uppercase tracking-widest text-sidebar-foreground/60 mt-1">O2 Inc. × G4</div>
+            </div>
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {NAV.map(({ to, label, icon: Icon }) => (

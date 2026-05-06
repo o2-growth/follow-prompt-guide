@@ -14,8 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        serif: ["Source Serif Pro", "Georgia", "serif"],
+        sans: ["Montserrat", "system-ui", "sans-serif"],
+        serif: ["Tusker Grotesk", "Anton", "Barlow Condensed", "Impact", "sans-serif"],
+        display: ["Tusker Grotesk", "Anton", "Barlow Condensed", "Impact", "sans-serif"],
+        mono: ["JetBrains Mono", "Consolas", "Menlo", "monospace"],
       },
       colors: {
         success: "hsl(var(--success))",

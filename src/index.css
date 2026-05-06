@@ -1,88 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap');
+/* O2 Inc. Design System — Strategic OS
+   Tusker Grotesk auto-host: drop os 3 .woff2 em public/fonts/tusker-grotesk/
+   Enquanto não chegam, fallback usa Anton + Barlow Condensed (Google Fonts). */
+
+@font-face {
+  font-family: 'Tusker Grotesk';
+  src: url('/fonts/tusker-grotesk/TuskerGrotesk-3600Semi.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Tusker Grotesk';
+  src: url('/fonts/tusker-grotesk/TuskerGrotesk-4700Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Tusker Grotesk';
+  src: url('/fonts/tusker-grotesk/TuskerGrotesk-7800Super.woff2') format('woff2');
+  font-weight: 900; font-style: normal; font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Strategic OS — O2inc × G4 */
+/* Strategic OS — O2 Inc. tokens (dark mode é a identidade) */
 @layer base {
   :root {
-    /* Off-white neutral base */
-    --background: 60 14% 97%;       /* #F7F7F4 */
-    --foreground: 217 70% 13%;       /* navy ink */
+    /* Bg dark padrão (#3A3A3A) */
+    --background: 0 0% 23%;
+    --foreground: 0 0% 98%;          /* #FAFAFA */
 
-    --card: 0 0% 100%;
-    --card-foreground: 217 70% 13%;
+    --card: 0 0% 18%;                /* #2E2E2E elev */
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 217 70% 13%;
+    --popover: 0 0% 14%;             /* #252525 elev-2 */
+    --popover-foreground: 0 0% 98%;
 
-    /* Navy executivo */
-    --primary: 217 70% 14%;          /* #0B1F3A */
-    --primary-foreground: 60 14% 97%;
-    --primary-glow: 217 60% 28%;
+    /* Ink-900 como "primary" institucional escuro */
+    --primary: 0 0% 13%;             /* #212121 */
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 0 0% 29%;        /* #494949 ink-700 */
 
-    /* Verde executivo */
-    --secondary: 138 47% 22%;        /* #1E5128 */
-    --secondary-foreground: 60 14% 97%;
+    /* Lima 400 — acento principal em fundo escuro */
+    --accent: 119 84% 66%;           /* #63F161 */
+    --accent-foreground: 0 0% 4%;    /* #0A0A0A */
 
-    /* Dourado discreto */
-    --accent: 42 50% 54%;            /* #C9A24A */
-    --accent-foreground: 217 70% 13%;
+    /* Secondary = surface elev */
+    --secondary: 0 0% 29%;           /* #4A4A4A */
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 60 8% 92%;
-    --muted-foreground: 217 18% 38%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 77%;    /* #C4C4C4 */
 
-    --destructive: 0 70% 45%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 138 47% 32%;
-    --warning: 35 85% 50%;
+    --success: 119 84% 50%;          /* lima 500 */
+    --warning: 35 90% 55%;
 
-    --border: 217 15% 88%;
-    --input: 217 15% 88%;
-    --ring: 217 70% 14%;
+    --border: 0 0% 100%;             /* alpha applied via /10 */
+    --input: 0 0% 30%;
+    --ring: 119 84% 66%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;               /* 12px */
 
-    /* Typography */
-    --font-sans: 'Inter', system-ui, sans-serif;
-    --font-serif: 'Source Serif Pro', Georgia, serif;
+    --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Tusker Grotesk', 'Anton', 'Barlow Condensed', 'Impact', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(217 70% 10%) 0%, hsl(217 60% 22%) 50%, hsl(138 40% 18%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(42 60% 60%), hsl(42 50% 44%));
-    --gradient-surface: linear-gradient(180deg, hsl(60 14% 99%), hsl(60 10% 95%));
+    --gradient-hero: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 50%, #0e2a13 100%);
+    --gradient-gold: linear-gradient(135deg, #63F161, #00D842);
+    --gradient-surface: linear-gradient(180deg, #3a3a3a, #2e2e2e);
 
-    /* Shadows */
-    --shadow-elegant: 0 10px 40px -12px hsl(217 70% 14% / 0.18);
-    --shadow-soft: 0 2px 8px -2px hsl(217 30% 20% / 0.08);
-    --shadow-gold: 0 8px 30px -10px hsl(42 50% 44% / 0.35);
+    --shadow-elegant: 0 16px 48px -12px rgba(0,0,0,0.55);
+    --shadow-soft: 0 2px 8px -2px rgba(0,0,0,0.35);
+    --shadow-gold: 0 8px 30px -10px rgba(99, 241, 97, 0.45);
 
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    --sidebar-background: 217 70% 14%;
-    --sidebar-foreground: 60 14% 92%;
-    --sidebar-primary: 42 50% 54%;
-    --sidebar-primary-foreground: 217 70% 13%;
-    --sidebar-accent: 217 60% 20%;
-    --sidebar-accent-foreground: 60 14% 97%;
-    --sidebar-border: 217 50% 22%;
-    --sidebar-ring: 42 50% 54%;
+    /* Sidebar (já estava escuro — mantém estética O2) */
+    --sidebar-background: 0 0% 14%;     /* #252525 */
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 119 84% 66%;     /* lima */
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 22%;
+    --sidebar-ring: 119 84% 66%;
   }
 
-  /* Dark mode removido do escopo MVP — a tela executiva sóbria opera somente
-     no tema claro. Caso seja reintroduzido, restaurar bloco .dark { … } aqui
-     e religar `darkMode: ["class"]` em tailwind.config.ts. */
+  /* Light mode — variante. Aplique em superfícies impressas/PDF preview se necessário. */
+  [data-theme="light"] {
+    --background: 60 8% 98%;          /* #FBFBFA */
+    --foreground: 0 0% 7%;            /* #111 */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 138 100% 42%;           /* #00D842 lima 500 */
+    --accent-foreground: 0 0% 100%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 35%;
+    --border: 0 0% 0%;
+    --input: 0 0% 88%;
+    --ring: 138 100% 42%;
+  }
 }
 
 @layer base {
-  * { @apply border-border; }
+  * { border-color: hsl(var(--border) / 0.10); }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: 'cv02', 'cv11';
   }
-  h1, h2, h3, .font-serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+  }
+  .font-mono { font-family: var(--font-mono); }
 }
 
 @layer components {
@@ -93,4 +134,17 @@
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-gold { box-shadow: var(--shadow-gold); }
   .transition-smooth { transition: var(--transition-smooth); }
+  .eyebrow {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 11px;
+    color: hsl(var(--accent));
+  }
 }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(99,241,97,0.14)); }
+  50% { transform: scale(1.03); filter: drop-shadow(0 0 24px hsl(var(--accent))); }
+}
+.breathe { animation: breathe 3.6s cubic-bezier(0.2,0.8,0.2,1) infinite; }
