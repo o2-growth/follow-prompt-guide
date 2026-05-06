@@ -85,6 +85,7 @@ export default function Financial() {
   );
 
   const [inputs, setInputs] = useState<Inputs>({ revenue: 5000000, growth: 30, margin: 20, tax: 15 });
+  const [viewHorizon, setViewHorizon] = useState<1 | 3 | 5>(5);
   const [hydrated, setHydrated] = useState(false);
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,8 +103,8 @@ export default function Financial() {
     setHydrated(true);
   }, [realisticRow, hydrated]);
 
-  const charts = SCENARIO_META.map(s => ({ ...s, data: project(inputs, HORIZON, s.multiplier) }));
-  const combo = Array.from({ length: HORIZON }, (_, i) => ({
+  const charts = SCENARIO_META.map(s => ({ ...s, data: project(inputs, HORIZON, s.multiplier).slice(0, viewHorizon) }));
+  const combo = Array.from({ length: viewHorizon }, (_, i) => ({
     year: `Ano ${i + 1}`,
     Otimista: charts[0].data[i].revenue,
     Realista: charts[1].data[i].revenue,
@@ -217,14 +218,62 @@ export default function Financial() {
           <TrendingUp className="h-7 w-7 text-accent" />
           <div>
             <h1 className="font-serif text-3xl font-bold text-primary">Projeção financeira</h1>
-            <p className="text-muted-foreground">DRE projetado em 3 cenários para {HORIZON} anos.</p>
+            <p className="text-muted-foreground">DRE projetado em 3 cenários — visualize 1, 3 ou 5 anos.</p>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-          {savingState === "saving" && <><Loader2 className="h-3 w-3 animate-spin" /> Salvando…</>}
-          {savingState === "saved" && <><CheckCircle2 className="h-3 w-3 text-secondary" /> Salvo</>}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg">
+            {VIEW_HORIZONS.map(h => (
+              <button
+                key={h}
+                onClick={() => setViewHorizon(h)}
+                className={`text-xs px-3 py-1 rounded-md font-medium transition-smooth ${viewHorizon === h ? "bg-primary text-primary-foreground shadow-soft" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {h} ano{h > 1 ? "s" : ""}
+              </button>
+            ))}
+          </div>
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            {savingState === "saving" && <><Loader2 className="h-3 w-3 animate-spin" /> Salvando…</>}
+            {savingState === "saved" && <><CheckCircle2 className="h-3 w-3 text-secondary" /> Salvo</>}
+          </div>
         </div>
       </div>
+
+      <AIInsightPanel
+        surface="financial"
+        title="Leitura crítica das premissas"
+        description="A IA analisa se suas premissas são realistas para o setor e sugere o cenário ideal para 1, 3 e 5 anos."
+        renderContent={(c) => (
+          <div className="space-y-3 text-xs">
+            {c?.diagnostico && <p className="text-foreground/80 italic text-sm">{c.diagnostico}</p>}
+            {Array.isArray(c?.riscos) && c.riscos.length > 0 && (
+              <div><span className="font-semibold text-destructive">Riscos:</span> {c.riscos.join(" · ")}</div>
+            )}
+            {Array.isArray(c?.alavancas) && c.alavancas.length > 0 && (
+              <div><span className="font-semibold text-secondary">Alavancas:</span> {c.alavancas.join(" · ")}</div>
+            )}
+            {c?.cenario_ideal && (
+              <div className="grid sm:grid-cols-3 gap-2 mt-2">
+                {(["ano_1","ano_3","ano_5"] as const).map((k, i) => {
+                  const v = c.cenario_ideal[k];
+                  if (!v) return null;
+                  const label = ["1 ano","3 anos","5 anos"][i];
+                  return (
+                    <div key={k} className="border border-accent/30 bg-card rounded-lg p-2">
+                      <div className="font-semibold text-primary">{label}</div>
+                      <div>Receita: <span className="text-accent font-medium">{v.receita_meta}</span></div>
+                      <div>Margem: {v.margem_alvo}</div>
+                      <div className="text-muted-foreground">{v.foco}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      />
+
 
       <Card className="shadow-soft">
         <CardHeader><CardTitle className="font-serif text-lg">Premissas</CardTitle></CardHeader>
