@@ -76,9 +76,9 @@ export default function Dashboard() {
               <EmptyState
                 icon={Gauge}
                 title="Sem diagnóstico ainda"
-                description="Complete o assessment de 5 dimensões para visualizar seu radar de maturidade."
+                description="Faça seu diagnóstico 360 na plataforma para obter seu score de maturidade."
                 ctaLabel="Fazer diagnóstico"
-                ctaTo="/maturity"
+                ctaHref="https://mindful-interface-lab.lovable.app"
                 density="sm"
               />
             ) : (

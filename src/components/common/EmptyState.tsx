@@ -17,6 +17,8 @@ interface EmptyStateProps {
   ctaLabel?: string;
   /** Caminho para `<Link to=…>` interno (react-router). Mutuamente exclusivo com `ctaOnClick`. */
   ctaTo?: string;
+  /** URL externa (abre em nova aba). Mutuamente exclusivo com `ctaTo`/`ctaOnClick`. */
+  ctaHref?: string;
   /** Handler de clique. Mutuamente exclusivo com `ctaTo`. */
   ctaOnClick?: () => void;
   className?: string;
@@ -30,6 +32,7 @@ export function EmptyState({
   description,
   ctaLabel,
   ctaTo,
+  ctaHref,
   ctaOnClick,
   className,
   density = "md",
@@ -37,11 +40,13 @@ export function EmptyState({
   const padY = density === "sm" ? "py-10" : density === "lg" ? "py-20" : "py-14";
 
   const cta = ctaLabel
-    ? ctaTo
-      ? <Button asChild><Link to={ctaTo}>{ctaLabel}</Link></Button>
-      : ctaOnClick
-        ? <Button onClick={ctaOnClick}>{ctaLabel}</Button>
-        : null
+    ? ctaHref
+      ? <Button asChild><a href={ctaHref} target="_blank" rel="noopener noreferrer">{ctaLabel}</a></Button>
+      : ctaTo
+        ? <Button asChild><Link to={ctaTo}>{ctaLabel}</Link></Button>
+        : ctaOnClick
+          ? <Button onClick={ctaOnClick}>{ctaLabel}</Button>
+          : null
     : null;
 
   return (
