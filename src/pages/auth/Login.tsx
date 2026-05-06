@@ -43,14 +43,22 @@ function GoogleButton() {
   const [loading, setLoading] = useState(false);
   const onClick = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
-    });
-    if (result.error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/auth/callback",
+      });
+      if (result.error) {
+        toast.error("Erro ao entrar com Google");
+        setLoading(false);
+        return;
+      }
+      if (result.redirected) return;
+      // tokens já setados — manda pro callback pra resolver tenant + onboarding
+      window.location.href = "/auth/callback";
+    } catch (e) {
       toast.error("Erro ao entrar com Google");
       setLoading(false);
     }
-    if (result.redirected) return;
   };
   return (
     <Button onClick={onClick} variant="outline" className="w-full" disabled={loading}>
