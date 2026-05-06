@@ -1,62 +1,85 @@
 ## Objetivo
 
-1. Adicionar campo **telefone obrigatório** no cadastro (Signup).
-2. Após signup bem-sucedido, criar automaticamente um **card no Pipefy** (pipe `304018800`, fase "Eventos") com os dados do lead, incluindo `Tipo de Origem do lead = Eventos` e `Origem do lead = G4 São Paulo - 6 de Maio`.
-3. Falha no Pipefy **não bloqueia** o signup — erro vai para log e `audit_log`.
+Tirar a inconsistência cromática da landing: o degradê verde difuso no hero e a faixa cinza-clara do PDF callout. Restabelecer ritmo dark editorial usando só 3 tons da marca + lima como único acento.
+
+---
+
+## Paleta final (consistente top→bottom)
+
+| Token | Hex | Uso |
+|---|---|---|
+| `ink-900` | `#1A1A1A` | Hero, PDF callout (faixas "fortes") |
+| `background` | `#3A3A3A` | Pillars, body padrão (respiro) |
+| `card` | `#242424` | Cards dos pillars |
+| `lima-400` | `#63F161` | Único acento |
+| `off-white` | `#FAFAFA` | Texto |
+
+Ritmo: **escuro (hero) → médio (pillars) → escuro (PDF) → médio (footer)**. Nada de cinza-claro alienígena, nada de gradient verde difuso.
 
 ---
 
 ## Mudanças
 
-### 1. Banco
+### 1. `src/index.css` — tokens
 
-Adicionar coluna `phone` em `user_profiles` e atualizar `handle_new_user` para persistir o telefone vindo do `raw_user_meta_data`.
+- **Remover `--gradient-hero`** (verde radial). Substituir por:
+  - `--ink-900: 0 0% 10%;` (novo token HSL)
+  - `--gradient-grid:` linear-gradient sutil só pro pattern blueprint (linhas finas em `hsl(0 0% 100% / 0.04)`).
+- Manter `--gradient-gold` (usado em ícones) e `--gradient-surface` (usado em cards).
 
-```sql
-ALTER TABLE public.user_profiles ADD COLUMN phone text;
-```
-Atualizar `handle_new_user()` para incluir `phone := NEW.raw_user_meta_data->>'phone'` no INSERT do profile.
+### 2. `tailwind.config.ts`
 
-### 2. Frontend — `src/pages/auth/Signup.tsx`
+- Adicionar `ink: { 900: 'hsl(var(--ink-900))' }` em `colors`.
 
-- Novo campo `<Input type="tel">` "Telefone (WhatsApp)" com máscara BR `(11) 99999-9999`, obrigatório, validação mínima de 10 dígitos.
-- Passar `phone` em `options.data` do `supabase.auth.signUp`.
-- Após `signUp` retornar OK, invocar edge function `pipefy-create-lead` (não bloqueante — `.catch` apenas loga via Sentry).
+### 3. `src/pages/Landing.tsx` — hero
 
-### 3. Secret
+- Trocar `gradient-hero` por `bg-ink-900 relative overflow-hidden`.
+- Adicionar dois elementos decorativos (absolute, pointer-events-none):
+  - **Grid blueprint**: `bg-[linear-gradient(...)] bg-[size:48px_48px] opacity-[0.06]` — linhas finas verticais+horizontais cobrindo todo o hero, fade-out radial nas bordas via mask.
+  - **Halo lima**: `radial-gradient(circle at 20% 40%, hsl(119 84% 66% / 0.18), transparent 55%)` — luz intencional atrás do H1.
+- Eyebrow mono mais presente (já existe a pill, manter).
 
-Solicitar via `add_secret` o token Pipefy: **`PIPEFY_API_TOKEN`** (Personal Access Token gerado em Pipefy → Configurações → Tokens pessoais).
+### 4. `src/pages/Landing.tsx` — PDF callout
 
-### 4. Edge Function — `supabase/functions/pipefy-create-lead/index.ts`
+- Trocar `bg-muted/40 border-y border-border` por `bg-ink-900 border-y border-accent/20`.
+- Manter ícone lima e tipografia.
+- Remover qualquer fundo cinza-claro residual.
 
-- Validação JWT (`getClaims`) — só usuário logado pode disparar para si mesmo.
-- Busca `user_profiles` (nome, telefone) + `auth.users` (email) via service role.
-- Chama Pipefy GraphQL API:
-  ```
-  POST https://api.pipefy.com/graphql
-  Headers: Authorization: Bearer ${PIPEFY_API_TOKEN}
-  ```
-- Mutation `createCard` no `pipe_id: 304018800`, com `phase_id` da fase "Eventos" (descoberto via query `pipe(id:){phases{id name}}` no primeiro deploy — guardado como constante; se "Eventos" não existir, usa fase inicial e loga warning).
-- `fields_attributes`: nome, email, telefone, `tipo_de_origem_do_lead = "Eventos"`, `origem_do_lead = "G4 São Paulo - 6 de Maio"`.
-- Em sucesso: `log_event('pipefy_card_created', payload={card_id})`.
-- Em falha: `log_event('pipefy_card_failed', payload={error})` + retorna 200 (não bloqueia signup) com `{ok:false, error}`.
+### 5. `src/pages/Landing.tsx` — pillars (sem mudança de cor)
 
-### 5. Validação
+- Mantém `bg-background` (#3A3A3A). Cards continuam `bg-card`.
+- Pequeno ajuste opcional: borda dos cards de `border-border` (que é branco c/ alpha 0.10) pra `border-white/5` explícito — só pra garantir que não puxe outro tom.
 
-- Smoke: criar conta de teste com telefone → ver card aparecer no pipe Pipefy 304018800 fase Eventos.
-- Ver `audit_log` para `pipefy_card_created`.
-- Forçar erro (token inválido) e confirmar que signup ainda completa.
+### 6. Footer
+
+- Mantém. Já está consistente.
 
 ---
 
 ## Detalhes técnicos
 
-- Field IDs do Pipefy são gerados pelo nome do campo (slug). Como não temos acesso ao schema do pipe, a edge function vai primeiro fazer um `pipe(id:304018800){start_form_fields{id label}}` na primeira invocação, cachear em memória do worker, e mapear nomes ("Nome", "E-mail", "Telefone", "Tipo de Origem do lead", "Origem do lead") → `id`. Se algum campo não bater, loga e segue com os que casaram.
-- Telefone armazenado como string só com dígitos no metadata; máscara só visual.
-- Não vamos pedir telefone para usuários que entram via Google OAuth nesta primeira versão (o fluxo OAuth não tem campo). Pode ser adicionado depois com um modal pós-callback se você quiser.
+- Grid blueprint via inline style ou utility:
+  ```
+  background-image:
+    linear-gradient(to right, hsl(0 0% 100% / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(0 0% 100% / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  ```
+- Halo lima: `<div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(119 84% 66% / 0.18), transparent 60%)' }} />`
+- Z-index: decoração `z-0`, conteúdo `relative z-10`.
+
+---
 
 ## Fora do escopo
 
-- Atualizar telefone depois do cadastro (Settings).
-- Sincronizar mudanças de profile com o card Pipefy.
-- Mover card entre fases conforme onboarding.
+- Mockup/preview do produto no hero (ficou pra fase B+C que você não escolheu agora).
+- Stats bar, timeline numerada dos pillars, prova social.
+- Mexer em rotas de auth, dashboard ou qualquer outra página.
+
+---
+
+## Validação
+
+- Screenshot da landing em 1024 e 390 (mobile).
+- Conferir que: (a) não tem mais gradient verde difuso, (b) não tem mais faixa cinza-clara, (c) grid blueprint aparece sutil sem competir com texto, (d) halo lima dá foco no H1 sem virar glow exagerado.

@@ -20,6 +20,7 @@ export default {
         mono: ["JetBrains Mono", "Consolas", "Menlo", "monospace"],
       },
       colors: {
+        ink: { 900: "hsl(var(--ink-900))" },
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         border: "hsl(var(--border))",
