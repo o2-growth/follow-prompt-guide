@@ -96,14 +96,15 @@ export default function ExportPDF() {
       const tenant = ((m as any).tenants as any) ?? {};
       const today = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
-      const NAVY: [number, number, number] = [11, 31, 58];
-      const NAVY_SOFT: [number, number, number] = [30, 56, 92];
-      const GOLD: [number, number, number] = [201, 162, 74];
-      const GREEN: [number, number, number] = [30, 81, 40];
-      const INK: [number, number, number] = [40, 44, 56];
-      const MUTED: [number, number, number] = [110, 118, 134];
-      const BG: [number, number, number] = [247, 247, 244];
-      const LINE: [number, number, number] = [225, 225, 230];
+      // O2 Inc. palette (PDF é light/papel)
+      const NAVY: [number, number, number] = [33, 33, 33];      // Ink-900
+      const NAVY_SOFT: [number, number, number] = [73, 73, 73]; // Ink-700
+      const GOLD: [number, number, number] = [0, 216, 66];      // Lima 500
+      const GREEN: [number, number, number] = [0, 176, 56];     // Lima 600
+      const INK: [number, number, number] = [33, 33, 33];
+      const MUTED: [number, number, number] = [103, 103, 103];  // Ink-500
+      const BG: [number, number, number] = [251, 251, 250];     // Off-white
+      const LINE: [number, number, number] = [234, 234, 234];   // Ink-150
 
       const MARGIN = 50;
       const CONTENT_W = W - MARGIN * 2;
