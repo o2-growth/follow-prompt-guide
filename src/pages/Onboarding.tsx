@@ -149,8 +149,16 @@ export default function Onboarding() {
         captureError(logErr, { step: "log_event onboarding_completed" });
       }
 
+      // 6. Dispara geração de plano de ação por IA (não bloqueante)
+      try {
+        supabase.functions.invoke("generate-action-plan", { body: { tenant_id: tenantId } })
+          .catch(err => captureError(err, { step: "generate-action-plan invoke" }));
+      } catch (err) {
+        captureError(err, { step: "generate-action-plan dispatch" });
+      }
+
       qc.invalidateQueries();
-      toast.success("Workspace pronto!");
+      toast.success("Workspace pronto! Gerando seu plano de ação com IA…");
       navigate("/dashboard");
     } catch (e: any) {
       captureError(e, { step: "onboarding.finish" });

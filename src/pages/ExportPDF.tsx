@@ -41,7 +41,7 @@ export default function ExportPDF() {
     queryKey: ["export-bundle", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
-      const [vision, objectives, maturity, rituals, projections, dre, roleTemplates, frameworks] = await Promise.all([
+      const [vision, objectives, maturity, rituals, projections, dre, roleTemplates, frameworks, aiPlan] = await Promise.all([
         supabase.from("vision_plans").select("*").eq("tenant_id", tenantId!),
         supabase.from("okrs_objectives").select("*, key_results(*)").eq("tenant_id", tenantId!),
         supabase.from("maturity_assessments").select("*").eq("tenant_id", tenantId!).order("taken_at", { ascending: false }),
@@ -50,6 +50,7 @@ export default function ExportPDF() {
         supabase.from("dre_line_items").select("*").eq("tenant_id", tenantId!),
         supabase.from("role_templates").select("*"),
         (supabase.from as any)("framework_library").select("*").order("display_order"),
+        (supabase.from as any)("ai_action_plans").select("*").eq("tenant_id", tenantId!).eq("status", "ready").order("generated_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       const latestMaturity: Record<string, number> = {};
       (maturity.data ?? []).forEach(a => {
@@ -64,9 +65,25 @@ export default function ExportPDF() {
         dre: dre.data ?? [],
         roleTemplates: roleTemplates.data ?? [],
         frameworks: (frameworks?.data as any[]) ?? [],
+        aiPlan: (aiPlan?.data as any) ?? null,
       };
     },
   });
+
+  const regenerateAi = async () => {
+    if (!tenantId) return;
+    try {
+      toast.loading("Gerando plano de ação com IA…", { id: "ai-plan" });
+      const { error } = await supabase.functions.invoke("generate-action-plan", { body: { tenant_id: tenantId } });
+      toast.dismiss("ai-plan");
+      if (error) throw error;
+      toast.success("Plano de ação gerado!");
+      window.location.reload();
+    } catch (e: any) {
+      toast.dismiss("ai-plan");
+      toast.error(e?.message ?? "Erro ao gerar plano de IA");
+    }
+  };
 
   const generate = async () => {
     if (!bundle || !m) return;
@@ -320,23 +337,135 @@ export default function ExportPDF() {
       }
       footer(page); doc.addPage(); page++;
 
-      // ============ Plano de ação 90 dias ============
-      newSection("Plano de ação · próximos 90 dias"); y = 110;
-      doc.setFontSize(11); doc.setTextColor(...INK);
-      const actions = [
-        "Mês 1 — Alinhamento: comunicar visão a todo o time, ativar daily e weekly.",
-        "Mês 1 — Defina e publique os OKRs do trimestre.",
-        "Mês 2 — Construir DRE projetado em 3 cenários e metas comerciais.",
-        "Mês 2 — Estabelecer 1:1 quinzenais e quarter review do próximo ciclo.",
-        "Mês 3 — Quarter review formal: revisar score dos OKRs e ajustar plano.",
-      ];
-      actions.forEach(a => { y = writeLines(`✓ ${a}`, 40, y, W - 80); y += 6; });
-      footer(page);
+      // ============ Plano de Ação Estratégico (IA) ============
+      const ai = (bundle as any).aiPlan?.content_json;
+      const ensureSpace = (need: number, contTitle: string) => {
+        if (y > H - need) { footer(page); doc.addPage(); page++; newSection(contTitle); y = 110; }
+      };
+      const sectionHeader = (title: string) => {
+        ensureSpace(120, title);
+        doc.setFont("times", "bold"); doc.setFontSize(14); doc.setTextColor(...NAVY);
+        doc.text(title, 40, y); y += 18;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+      };
+
+      if (ai) {
+        newSection("Análise estratégica · IA"); y = 110;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+        if (ai.resumo_executivo) {
+          doc.setFont("helvetica", "bold"); doc.text("Diagnóstico:", 40, y); y += 14;
+          doc.setFont("helvetica", "normal");
+          y = writeLines(ai.resumo_executivo, 40, y, W - 80); y += 10;
+        }
+        if (Array.isArray(ai.prioridades) && ai.prioridades.length) {
+          sectionHeader("Prioridades estratégicas");
+          ai.prioridades.forEach((p: any, i: number) => {
+            ensureSpace(60, "Prioridades (cont.)");
+            doc.setFont("helvetica", "bold"); doc.setTextColor(...GOLD);
+            y = writeLines(`${i + 1}. ${p.titulo}  [${p.impacto}]`, 40, y, W - 80);
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...INK);
+            y = writeLines(p.porque, 50, y, W - 100); y += 6;
+          });
+        }
+        if (Array.isArray(ai.frameworks_recomendados) && ai.frameworks_recomendados.length) {
+          sectionHeader("Frameworks recomendados");
+          ai.frameworks_recomendados.forEach((f: any) => {
+            ensureSpace(60, "Frameworks (cont.)");
+            doc.setFont("helvetica", "bold"); y = writeLines(`▸ ${f.nome}`, 40, y, W - 80);
+            doc.setFont("helvetica", "normal");
+            y = writeLines(`Quando usar: ${f.quando_usar}`, 50, y, W - 100);
+            y = writeLines(`Primeiro passo: ${f.primeiro_passo}`, 50, y, W - 100); y += 6;
+          });
+        }
+        if (Array.isArray(ai.sugestoes_okrs) && ai.sugestoes_okrs.length) {
+          footer(page); doc.addPage(); page++;
+          newSection("OKRs sugeridos pela IA"); y = 110;
+          doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+          ai.sugestoes_okrs.forEach((o: any) => {
+            ensureSpace(80, "OKRs sugeridos (cont.)");
+            doc.setFont("helvetica", "bold"); doc.setTextColor(...NAVY);
+            y = writeLines(`◆ ${o.objetivo}`, 40, y, W - 80);
+            doc.setFont("helvetica", "italic"); doc.setTextColor(...INK);
+            y = writeLines(o.por_que, 50, y, W - 100);
+            doc.setFont("helvetica", "normal");
+            (o.key_results ?? []).forEach((kr: any) => {
+              ensureSpace(40, "OKRs sugeridos (cont.)");
+              y = writeLines(`   • ${kr.kr}`, 50, y, W - 100);
+              y = writeLines(`     Meta: ${kr.meta}${kr.baseline ? ` · Baseline: ${kr.baseline}` : ""} · KPI: ${kr.kpi_acompanhamento}`, 50, y, W - 100);
+            });
+            y += 8;
+          });
+        }
+        if (ai.sugestoes_visao) {
+          sectionHeader("Refino de Visão sugerido");
+          const v = ai.sugestoes_visao;
+          if (v.north_star_refinado) { doc.setFont("helvetica", "bold"); doc.text("North Star:", 40, y); y += 14; doc.setFont("helvetica", "normal"); y = writeLines(v.north_star_refinado, 40, y, W - 80); y += 6; }
+          if (v.missao_refinada) { doc.setFont("helvetica", "bold"); doc.text("Missão:", 40, y); y += 14; doc.setFont("helvetica", "normal"); y = writeLines(v.missao_refinada, 40, y, W - 80); y += 6; }
+          if (Array.isArray(v.valores_sugeridos) && v.valores_sugeridos.length) {
+            doc.setFont("helvetica", "bold"); doc.text("Valores:", 40, y); y += 14; doc.setFont("helvetica", "normal");
+            y = writeLines(v.valores_sugeridos.join(", "), 40, y, W - 80); y += 6;
+          }
+        }
+        if (Array.isArray(ai.sugestoes_time) && ai.sugestoes_time.length) {
+          sectionHeader("Time — posições-chave");
+          ai.sugestoes_time.forEach((t: any) => {
+            ensureSpace(50, "Time (cont.)");
+            doc.setFont("helvetica", "bold"); y = writeLines(`▸ ${t.papel} (${t.area}) — ${t.prioridade}`, 40, y, W - 80);
+            doc.setFont("helvetica", "normal"); y = writeLines(t.por_que, 50, y, W - 100); y += 4;
+          });
+        }
+        if (Array.isArray(ai.sugestoes_rituais) && ai.sugestoes_rituais.length) {
+          sectionHeader("Rituais sugeridos");
+          ai.sugestoes_rituais.forEach((r: any) => {
+            ensureSpace(60, "Rituais sugeridos (cont.)");
+            doc.setFont("helvetica", "bold"); y = writeLines(`■ ${r.ritual} · ${r.cadencia}`, 40, y, W - 80);
+            doc.setFont("helvetica", "normal");
+            y = writeLines(`Participantes: ${r.participantes}`, 50, y, W - 100);
+            y = writeLines(`Pauta: ${r.pauta_resumida}`, 50, y, W - 100); y += 4;
+          });
+        }
+        if (ai.projecao_ideal) {
+          sectionHeader("Projeção ideal (12 meses)");
+          const p = ai.projecao_ideal;
+          y = writeLines(`Premissas: ${p.premissas}`, 40, y, W - 80);
+          y = writeLines(`Receita meta: ${p.receita_meta_12m}`, 40, y, W - 80);
+          y = writeLines(`Margem EBITDA alvo: ${p.margem_ebitda_alvo}`, 40, y, W - 80);
+          if (Array.isArray(p.principais_alavancas)) {
+            doc.setFont("helvetica", "bold"); y += 4; doc.text("Principais alavancas:", 40, y); y += 14;
+            doc.setFont("helvetica", "normal");
+            p.principais_alavancas.forEach((a: string) => { y = writeLines(`• ${a}`, 50, y, W - 100); });
+          }
+        }
+        if (Array.isArray(ai.plano_90_dias) && ai.plano_90_dias.length) {
+          footer(page); doc.addPage(); page++;
+          newSection("Plano de ação · 90 dias (IA)"); y = 110;
+          doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+          ai.plano_90_dias.forEach((step: any) => {
+            ensureSpace(60, "Plano 90 dias (cont.)");
+            doc.setFont("helvetica", "bold"); doc.setTextColor(...GREEN);
+            y = writeLines(`✓ ${step.semana} — ${step.acao}`, 40, y, W - 80);
+            doc.setFont("helvetica", "normal"); doc.setTextColor(...INK);
+            y = writeLines(`Owner: ${step.owner_sugerido} · Resultado: ${step.resultado_esperado}`, 50, y, W - 100); y += 6;
+          });
+        }
+        footer(page);
+      } else {
+        newSection("Plano de ação · próximos 90 dias"); y = 110;
+        doc.setFontSize(11); doc.setTextColor(...INK);
+        const actions = [
+          "Mês 1 — Alinhamento: comunicar visão a todo o time, ativar daily e weekly.",
+          "Mês 1 — Defina e publique os OKRs do trimestre.",
+          "Mês 2 — Construir DRE projetado em 3 cenários e metas comerciais.",
+          "Mês 2 — Estabelecer 1:1 quinzenais e quarter review do próximo ciclo.",
+          "Mês 3 — Quarter review formal: revisar score dos OKRs e ajustar plano.",
+        ];
+        actions.forEach(a => { y = writeLines(`✓ ${a}`, 40, y, W - 80); y += 6; });
+        footer(page);
+      }
 
       doc.save(`StrategicOS_${(tenant.name ?? "plano").replace(/\s+/g, "_")}.pdf`);
       toast.success("PDF gerado!");
 
-      // Audit log
       try {
         if (tenantId) {
           await (supabase.rpc as any)("log_event", {
@@ -344,7 +473,7 @@ export default function ExportPDF() {
             p_action: "pdf_generated",
             p_entity_type: "tenant",
             p_entity_id: tenantId,
-            p_payload: { pages: page, generated_at: new Date().toISOString() },
+            p_payload: { pages: page, generated_at: new Date().toISOString(), ai_plan: !!ai },
           });
         }
       } catch (e) {
@@ -380,10 +509,27 @@ export default function ExportPDF() {
               "Projeção financeira em 3 cenários (otimista / realista / pessimista) com DRE 5 anos",
               "Estrutura de time recomendada por área com seniority + headcount sugerido",
               "Calendário de rituais ativos com agendas",
-              "Plano de ação para os próximos 90 dias",
+              "Análise estratégica gerada por IA: prioridades, frameworks recomendados, OKRs sugeridos, refino de visão, time, projeção ideal e plano de 90 dias personalizado",
             ].map(t => <li key={t} className="flex gap-2"><span className="text-accent">›</span>{t}</li>)}
           </ul>
-          <div className="pt-4">
+
+          <div className="pt-4 border-t mt-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="font-medium text-foreground">Análise estratégica por IA</div>
+                <div className="text-xs text-muted-foreground">
+                  {(bundle as any)?.aiPlan
+                    ? `Plano gerado em ${new Date((bundle as any).aiPlan.generated_at ?? (bundle as any).aiPlan.created_at).toLocaleString("pt-BR")}.`
+                    : "Ainda não gerado. Será gerado automaticamente após o onboarding ou clique abaixo."}
+                </div>
+              </div>
+              <Button variant="outline" onClick={regenerateAi}>
+                {(bundle as any)?.aiPlan ? "Regerar com IA" : "Gerar com IA"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="pt-2">
             <Button onClick={generate} disabled={generating} className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-gold">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <><FileDown className="h-4 w-4 mr-2" /> Gerar PDF agora</>}
             </Button>
