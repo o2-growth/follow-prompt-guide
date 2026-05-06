@@ -78,7 +78,7 @@ export default function Dashboard() {
                 title="Sem diagnóstico ainda"
                 description="Faça seu diagnóstico 360 na plataforma para obter seu score de maturidade."
                 ctaLabel="Fazer diagnóstico"
-                ctaHref="https://mindful-interface-lab.lovable.app"
+                ctaHref="https://mindful-interface-lab.lovable.app/auth"
                 density="sm"
               />
             ) : (
