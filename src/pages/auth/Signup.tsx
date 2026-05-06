@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,20 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { AuthLayout } from "./Login";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Se já está logado, manda pro callback resolver onboarding/dashboard
+  if (!authLoading && user) {
+    return <Navigate to="/auth/callback" replace />;
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,20 +30,33 @@ export default function Signup() {
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: window.location.origin + "/onboarding",
+        emailRedirectTo: window.location.origin + "/auth/callback",
         data: { full_name: name },
       },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Conta criada! Bem-vindo(a).");
-    navigate("/onboarding");
+    navigate("/auth/callback");
   };
 
   const onGoogle = async () => {
     setLoading(true);
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/onboarding" });
-    if (r.error) { toast.error("Erro ao entrar com Google"); setLoading(false); }
+    try {
+      const r = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/auth/callback",
+      });
+      if (r.error) {
+        toast.error("Erro ao entrar com Google");
+        setLoading(false);
+        return;
+      }
+      if (r.redirected) return;
+      window.location.href = "/auth/callback";
+    } catch {
+      toast.error("Erro ao entrar com Google");
+      setLoading(false);
+    }
   };
 
   return (
