@@ -29,62 +29,61 @@
     --background: 0 0% 23%;
     --foreground: 0 0% 98%;          /* #FAFAFA */
 
-    --card: 0 0% 18%;                /* #2E2E2E elev */
+    /* Cards mais escuros que o bg → hierarquia */
+    --card: 0 0% 14%;                /* #242424 */
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 14%;             /* #252525 elev-2 */
+    --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
 
-    /* Ink-900 como "primary" institucional escuro */
-    --primary: 0 0% 13%;             /* #212121 */
-    --primary-foreground: 0 0% 98%;
-    --primary-glow: 0 0% 29%;        /* #494949 ink-700 */
+    /* PRIMARY = off-white para títulos/text-primary ficarem brancos brilhantes */
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 13%;
+    --primary-glow: 119 84% 66%;
 
     /* Lima 400 — acento principal em fundo escuro */
     --accent: 119 84% 66%;           /* #63F161 */
     --accent-foreground: 0 0% 4%;    /* #0A0A0A */
 
-    /* Secondary = surface elev */
-    --secondary: 0 0% 29%;           /* #4A4A4A */
+    --secondary: 0 0% 26%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 77%;    /* #C4C4C4 */
+    --muted-foreground: 0 0% 70%;
 
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 119 84% 50%;          /* lima 500 */
+    --success: 119 84% 50%;
     --warning: 35 90% 55%;
 
-    --border: 0 0% 100%;             /* alpha applied via /10 */
-    --input: 0 0% 30%;
+    --border: 0 0% 100%;             /* alpha aplicado nos componentes */
+    --input: 0 0% 18%;
     --ring: 119 84% 66%;
 
-    --radius: 0.75rem;               /* 12px */
+    --radius: 0.75rem;
 
     --font-sans: 'Montserrat', system-ui, -apple-system, sans-serif;
     --font-serif: 'Tusker Grotesk', 'Anton', 'Barlow Condensed', 'Impact', sans-serif;
     --font-mono: 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
 
-    --gradient-hero: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 50%, #0e2a13 100%);
+    --gradient-hero: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 45%, #1f3a25 100%);
     --gradient-gold: linear-gradient(135deg, #63F161, #00D842);
-    --gradient-surface: linear-gradient(180deg, #3a3a3a, #2e2e2e);
+    --gradient-surface: linear-gradient(180deg, #2e2e2e, #242424);
 
     --shadow-elegant: 0 16px 48px -12px rgba(0,0,0,0.55);
-    --shadow-soft: 0 2px 8px -2px rgba(0,0,0,0.35);
+    --shadow-soft: 0 2px 12px -4px rgba(0,0,0,0.45);
     --shadow-gold: 0 8px 30px -10px rgba(99, 241, 97, 0.45);
 
     --transition-smooth: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* Sidebar (já estava escuro — mantém estética O2) */
-    --sidebar-background: 0 0% 14%;     /* #252525 */
+    --sidebar-background: 0 0% 11%;
     --sidebar-foreground: 0 0% 92%;
-    --sidebar-primary: 119 84% 66%;     /* lima */
+    --sidebar-primary: 119 84% 66%;
     --sidebar-primary-foreground: 0 0% 4%;
-    --sidebar-accent: 0 0% 20%;
+    --sidebar-accent: 0 0% 18%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 22%;
+    --sidebar-border: 0 0% 100%;
     --sidebar-ring: 119 84% 66%;
   }
 
