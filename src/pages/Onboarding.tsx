@@ -189,7 +189,7 @@ export default function Onboarding() {
           <Progress value={progress} className="mt-3 h-1.5" />
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-soft">
+        <div className="bg-card border border-white/10 rounded-xl p-6 md:p-8 shadow-elegant">
           {step === 0 && (
             <div className="space-y-5">
               <div>
