@@ -52,7 +52,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "border-2 border-dashed border-border rounded-xl bg-muted/20",
+        "border-2 border-dashed border-white/15 rounded-xl bg-white/[0.02]",
         "flex flex-col items-center text-center px-6",
         padY,
         className

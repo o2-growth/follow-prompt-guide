@@ -27,8 +27,8 @@ const SIZE_MAP: Record<Size, { width: number; height: number; g4Size: number; su
 export function LogoG4({ size = "md", variant = "light", className, title = "G4 Educação" }: LogoG4Props) {
   const dims = SIZE_MAP[size];
   // light = navy ink; dark = off-white. Em ambos casos o "4" recebe accent gold.
-  const fill = variant === "light" ? "hsl(0 0% 13%)" : "hsl(0 0% 98%)";
-  const accent = "hsl(119 84% 66%)"; // lima 400
+  const fill = variant === "light" ? "hsl(217 70% 14%)" : "hsl(60 14% 97%)";
+  const accent = "hsl(42 50% 54%)"; // dourado original G4 — não alterar
 
   return (
     <svg
