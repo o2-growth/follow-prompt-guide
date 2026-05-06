@@ -1,15 +1,27 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Compass, Target, Users2, CalendarCheck, Gauge, FileDown, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Compass, Target, CalendarCheck, FileDown, CheckCircle2 } from "lucide-react";
 import { CoBranding } from "@/components/branding/CoBranding";
 
-const FEATURES = [
-  { icon: Compass, title: "Visão 5/3/1", desc: "North star, missão e metas em cascata até a semana." },
-  { icon: Target, title: "OKRs", desc: "Objetivos com KRs mensuráveis e check-ins semanais." },
-  
-  { icon: Users2, title: "Time & frameworks", desc: "Organograma recomendado, SPIN, MEDDIC, RACI." },
-  { icon: CalendarCheck, title: "Rituais", desc: "Daily, weekly, monthly, 1:1 e quarter review." },
-  { icon: Gauge, title: "Diagnóstico de maturidade", desc: "Radar em 5 dimensões com recomendações." },
+const PILLARS = [
+  {
+    icon: Compass,
+    eyebrow: "Estratégico",
+    title: "Para onde vamos",
+    desc: "Visão 5/3/1, north star e diagnóstico de maturidade em 5 dimensões.",
+  },
+  {
+    icon: Target,
+    eyebrow: "Tático",
+    title: "Como vamos chegar lá",
+    desc: "OKRs trimestrais com KRs mensuráveis e estrutura de time com frameworks (SPIN, MEDDIC, RACI).",
+  },
+  {
+    icon: CalendarCheck,
+    eyebrow: "Operacional",
+    title: "O que fazemos toda semana",
+    desc: "Rituais (daily, weekly, 1:1, monthly, quarter) com agenda e check-ins.",
+  },
 ];
 
 export default function Landing() {
@@ -67,16 +79,17 @@ export default function Landing() {
           <div className="max-w-2xl mb-14">
             <div className="text-xs uppercase tracking-widest text-accent font-semibold mb-3">O que você vai construir</div>
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-primary">
-              Sete módulos integrados. Um plano estratégico cascateado da visão até a semana.
+              Três níveis. Um plano só.
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-card border border-border rounded-xl p-6 shadow-soft hover:shadow-elegant transition-smooth">
-                <div className="h-11 w-11 rounded-lg gradient-gold flex items-center justify-center shadow-gold mb-4">
-                  <Icon className="h-5 w-5 text-accent-foreground" />
+          <div className="grid md:grid-cols-3 gap-6">
+            {PILLARS.map(({ icon: Icon, eyebrow, title, desc }) => (
+              <div key={eyebrow} className="bg-card border border-border rounded-xl p-8 shadow-soft hover:shadow-elegant transition-smooth">
+                <div className="h-12 w-12 rounded-lg gradient-gold flex items-center justify-center shadow-gold mb-5">
+                  <Icon className="h-6 w-6 text-accent-foreground" />
                 </div>
-                <h3 className="font-serif text-lg font-semibold text-primary mb-1.5">{title}</h3>
+                <div className="text-xs uppercase tracking-widest text-accent font-semibold mb-2">{eyebrow}</div>
+                <h3 className="font-serif text-xl font-semibold text-primary mb-2">{title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
               </div>
             ))}
@@ -92,7 +105,7 @@ export default function Landing() {
             Saia com o seu plano em PDF.
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Capa branded O2inc + G4, sumário executivo, visão 5/3/1, OKRs, DRE em 3 cenários, 
+            Capa branded O2inc + G4, sumário executivo, visão 5/3/1, OKRs,
             organograma recomendado, calendário de rituais e plano de ação 90 dias.
           </p>
           <Button asChild size="lg"><Link to="/auth/signup">Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
