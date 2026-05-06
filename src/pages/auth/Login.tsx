@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
@@ -43,14 +44,22 @@ function GoogleButton() {
   const [loading, setLoading] = useState(false);
   const onClick = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
-    });
-    if (result.error) {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/auth/callback",
+      });
+      if (result.error) {
+        toast.error("Erro ao entrar com Google");
+        setLoading(false);
+        return;
+      }
+      if (result.redirected) return;
+      // tokens já setados — manda pro callback pra resolver tenant + onboarding
+      window.location.href = "/auth/callback";
+    } catch (e) {
       toast.error("Erro ao entrar com Google");
       setLoading(false);
     }
-    if (result.redirected) return;
   };
   return (
     <Button onClick={onClick} variant="outline" className="w-full" disabled={loading}>
@@ -66,9 +75,14 @@ function GoogleButton() {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (!authLoading && user) {
+    return <Navigate to="/auth/callback" replace />;
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +90,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message);
-    navigate("/dashboard");
+    navigate("/auth/callback");
   };
 
   return (

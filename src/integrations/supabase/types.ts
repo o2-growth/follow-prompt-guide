@@ -182,6 +182,42 @@ export type Database = {
           },
         ]
       }
+      framework_library: {
+        Row: {
+          category: string
+          created_at: string
+          description_md: string | null
+          display_order: number
+          example_md: string | null
+          key: string
+          name: string
+          template_md: string | null
+          when_to_apply: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description_md?: string | null
+          display_order?: number
+          example_md?: string | null
+          key: string
+          name: string
+          template_md?: string | null
+          when_to_apply?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description_md?: string | null
+          display_order?: number
+          example_md?: string | null
+          key?: string
+          name?: string
+          template_md?: string | null
+          when_to_apply?: string | null
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           created_at: string
@@ -650,6 +686,42 @@ export type Database = {
           },
         ]
       }
+      ritual_templates: {
+        Row: {
+          agenda_json: Json
+          cadence_cron: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          duration_minutes: number | null
+          id: string
+          kind: string
+          name: string
+        }
+        Insert: {
+          agenda_json?: Json
+          cadence_cron?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_minutes?: number | null
+          id: string
+          kind: string
+          name: string
+        }
+        Update: {
+          agenda_json?: Json
+          cadence_cron?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          duration_minutes?: number | null
+          id?: string
+          kind?: string
+          name?: string
+        }
+        Relationships: []
+      }
       rituals: {
         Row: {
           active: boolean
@@ -706,27 +778,36 @@ export type Database = {
           created_at: string
           description: string | null
           framework_key: string | null
+          framework_keys: string[]
           framework_summary: string | null
           id: string
+          recommended_headcount_by_revenue: Json
           role_name: string
+          seniority: string | null
         }
         Insert: {
           area: string
           created_at?: string
           description?: string | null
           framework_key?: string | null
+          framework_keys?: string[]
           framework_summary?: string | null
           id?: string
+          recommended_headcount_by_revenue?: Json
           role_name: string
+          seniority?: string | null
         }
         Update: {
           area?: string
           created_at?: string
           description?: string | null
           framework_key?: string | null
+          framework_keys?: string[]
           framework_summary?: string | null
           id?: string
+          recommended_headcount_by_revenue?: Json
           role_name?: string
+          seniority?: string | null
         }
         Relationships: []
       }
@@ -793,7 +874,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
-          name: string
+          name?: string
           onboarding_completed?: boolean
           plan_locked?: string
           revenue_band?: string | null
@@ -910,6 +991,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_app_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      compute_maturity_score: {
+        Args: { p_answers: Json; p_tenant_id: string }
+        Returns: Json
+      }
+      decompose_vision: { Args: { p_vision_id: string }; Returns: Json }
+      ensure_tenant_for_user: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -917,11 +1011,34 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_member: { Args: { _tenant: string; _user: string }; Returns: boolean }
-      is_tenant_admin: {
-        Args: { _tenant: string; _user: string }
-        Returns: boolean
+      init_projections: {
+        Args: { p_horizon_years?: number; p_tenant_id: string }
+        Returns: undefined
       }
+      is_member:
+        | { Args: { _tenant: string }; Returns: boolean }
+        | { Args: { _tenant: string; _user: string }; Returns: boolean }
+      is_tenant_admin:
+        | { Args: { _tenant: string }; Returns: boolean }
+        | { Args: { _tenant: string; _user: string }; Returns: boolean }
+      log_event: {
+        Args: {
+          p_action: string
+          p_entity_id?: string
+          p_entity_type?: string
+          p_payload?: Json
+          p_tenant_id: string
+        }
+        Returns: string
+      }
+      revoke_app_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      start_assessment: { Args: { p_tenant_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
