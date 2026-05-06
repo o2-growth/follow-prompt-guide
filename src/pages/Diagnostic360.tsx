@@ -19,7 +19,7 @@ export default function Diagnostic360() {
         title="Descubra como está sua empresa em todas as áreas"
         description="O Diagnóstico 360 é feito em nossa plataforma dedicada e avalia, de ponta a ponta, a maturidade do seu negócio: estratégia, gestão, pessoas, processos, comercial, marketing, operações e financeiro. Ao final, você recebe um score consolidado e recomendações priorizadas que aparecerão aqui no Strategic OS para guiar seu plano de ação."
         ctaLabel="Fazer Diagnóstico 360"
-        ctaHref="https://mindful-interface-lab.lovable.app"
+        ctaHref="https://mindful-interface-lab.lovable.app/auth"
         density="lg"
       />
     </div>
