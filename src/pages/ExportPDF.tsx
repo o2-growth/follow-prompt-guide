@@ -135,7 +135,7 @@ export default function ExportPDF() {
         doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
         doc.line(MARGIN, H - 36, W - MARGIN, H - 36);
         doc.setFontSize(8); doc.setTextColor(...MUTED); doc.setFont("helvetica", "normal");
-        doc.text("Strategic OS  ·  O2inc x G4 Educacao", MARGIN, H - 22);
+        doc.text("Strategic OS  ·  O2 Inc. x G4 Educacao", MARGIN, H - 22);
         doc.text(`pag. ${page}`, W - MARGIN, H - 22, { align: "right" });
       };
 
@@ -182,7 +182,7 @@ export default function ExportPDF() {
       doc.setTextColor(...GOLD); doc.setFontSize(10); doc.setFont("helvetica", "bold");
       doc.text("STRATEGIC OS", MARGIN, 70, { charSpace: 2 });
       doc.setTextColor(220); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-      doc.text("O2inc  x  G4 Educacao", MARGIN, 86);
+      doc.text("O2 Inc.  x  G4 Educacao", MARGIN, 86);
 
       doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(...GOLD);
       doc.text("PLANO ESTRATEGICO", MARGIN, 130, { charSpace: 2 });
