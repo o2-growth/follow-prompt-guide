@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_action_plans: {
+        Row: {
+          content_json: Json
+          created_at: string
+          error_message: string | null
+          generated_at: string | null
+          id: string
+          model: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_json?: Json
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_json?: Json
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
