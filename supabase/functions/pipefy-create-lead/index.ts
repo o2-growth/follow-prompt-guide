@@ -136,10 +136,17 @@ Deno.serve(async (req) => {
 
     const schema = await getSchema(PIPEFY_TOKEN);
 
+    const norm = (s: string) =>
+      s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+    // Todos os campos cujo label contenha "telefone"/"phone"/"whatsapp" recebem o telefone do lead
+    const phoneFieldIds = schema.fields
+      .filter((f) => /telefone|phone|whats/.test(norm(f.label)))
+      .map((f) => f.id);
+
     const fId = {
       nome: findFieldId(schema.fields, ["Nome", "Nome completo", "Name"]),
       email: findFieldId(schema.fields, ["E-mail", "Email"]),
-      telefone: findFieldId(schema.fields, ["Telefone", "Phone", "WhatsApp"]),
       empresa: findFieldId(schema.fields, ["Empresa", "Company"]),
       tipoOrigem: findFieldId(schema.fields, [
         "Tipo de Origem do lead",
@@ -157,8 +164,11 @@ Deno.serve(async (req) => {
     if (fId.nome) fieldsAttrs.push({ field_id: fId.nome, field_value: fullName });
     if (fId.email && email)
       fieldsAttrs.push({ field_id: fId.email, field_value: email });
-    if (fId.telefone && phone)
-      fieldsAttrs.push({ field_id: fId.telefone, field_value: phone });
+    if (phone) {
+      for (const pid of phoneFieldIds) {
+        fieldsAttrs.push({ field_id: pid, field_value: phone });
+      }
+    }
     if (fId.empresa && companyName)
       fieldsAttrs.push({ field_id: fId.empresa, field_value: companyName });
     if (fId.tipoOrigem)
