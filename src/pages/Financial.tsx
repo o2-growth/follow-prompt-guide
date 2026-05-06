@@ -22,8 +22,8 @@ const SCENARIO_META: { key: ScenarioKey; label: string; multiplier: number; colo
   { key: "pessimistic", label: "Pessimista", multiplier: 0.7, color: "hsl(0 70% 45%)" },
 ];
 
-const HORIZONS = [1, 3, 5] as const;
-type Horizon = typeof HORIZONS[number];
+const HORIZON = 5;
+const VIEW_HORIZONS = [1, 3, 5] as const;
 const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 function project(input: Inputs, years: number, mult: number) {
