@@ -12,6 +12,7 @@ import {
 import { Users2 } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { useTenant } from "@/hooks/useTenant";
+import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 
 const AREAS = [
   { key: "commercial", label: "Comercial" },
@@ -75,6 +76,39 @@ export default function Team() {
           <p className="text-muted-foreground">Organograma recomendado e frameworks por área.</p>
         </div>
       </div>
+
+      <AIInsightPanel
+        surface="team"
+        title="Roadmap de contratações priorizado"
+        description="A IA prioriza papéis para 0-6m, 6-12m e 12-24m com base nos gargalos que destravam sua meta financeira."
+        renderContent={(c) => {
+          const groups = ["0-6m","6-12m","12-24m"] as const;
+          const labels: Record<string,string> = { "0-6m":"Próximos 6 meses","6-12m":"6 a 12 meses","12-24m":"12 a 24 meses" };
+          const prioColor: Record<string,string> = { urgente:"text-destructive", alta:"text-accent", media:"text-foreground", baixa:"text-muted-foreground" };
+          return (
+            <div className="space-y-4">
+              {c?.diagnostico && <p className="text-foreground/80 italic">{c.diagnostico}</p>}
+              {groups.map(g => {
+                const items = (c?.contratacoes ?? []).filter((x: any) => x.janela === g);
+                if (!items.length) return null;
+                return (
+                  <div key={g}>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-accent mb-2">{labels[g]}</div>
+                    <div className="space-y-2">
+                      {items.map((it: any, i: number) => (
+                        <div key={i} className="border-l-2 border-border pl-3 text-xs">
+                          <div className="font-medium text-foreground">▸ {it.papel} <span className="text-muted-foreground">· {it.area} · {it.seniority}</span> <span className={`font-semibold ${prioColor[it.prioridade] ?? ""}`}>· {it.prioridade}</span></div>
+                          <div className="text-muted-foreground">{it.por_que}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }}
+      />
 
       <Tabs value={area} onValueChange={setArea}>
         <TabsList>{AREAS.map(a => <TabsTrigger key={a.key} value={a.key}>{a.label}</TabsTrigger>)}</TabsList>

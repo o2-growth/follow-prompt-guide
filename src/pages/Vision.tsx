@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Compass, Lightbulb } from "lucide-react";
+import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 
 const HORIZONS = [5, 3, 1] as const;
 
@@ -58,10 +59,55 @@ export default function Vision() {
       <div className="flex items-center gap-3">
         <Compass className="h-7 w-7 text-accent" />
         <div>
-          <h1 className="font-serif text-3xl font-bold text-primary">Visão estratégica</h1>
-          <p className="text-muted-foreground">Cascata 5 → 3 → 1 ano. Comece pelo horizonte mais longo.</p>
+          <h1 className="font-serif text-3xl font-bold text-primary">Norte estratégico</h1>
+          <p className="text-muted-foreground">North Star, missão e valores em 5 / 3 / 1 ano — amarrados às suas metas financeiras.</p>
         </div>
       </div>
+
+      <AIInsightPanel
+        surface="vision"
+        title="Refino de Visão sugerido pela IA"
+        description="A IA refina North Star, missão e valores em cada horizonte, conectando-os à meta financeira correspondente."
+        applyAction={{
+          label: "Aplicar visão sugerida",
+          onApply: async (c) => {
+            if (!tenantId) return;
+            const map: Record<number, any> = { 5: c?.horizonte_5, 3: c?.horizonte_3, 1: c?.horizonte_1 };
+            for (const h of HORIZONS) {
+              const sug = map[h];
+              if (!sug) continue;
+              const existing = plans?.find(p => p.year_horizon === h);
+              const payload = {
+                north_star: sug.north_star ?? "",
+                mission: sug.missao ?? "",
+                values_json: Array.isArray(sug.valores) ? sug.valores : (existing?.values_json ?? []),
+              };
+              if (existing) await supabase.from("vision_plans").update(payload).eq("id", existing.id);
+              else await supabase.from("vision_plans").insert({ tenant_id: tenantId, year_horizon: h, ...payload });
+            }
+            qc.invalidateQueries({ queryKey: ["vision_plans", tenantId] });
+          },
+        }}
+        renderContent={(c) => (
+          <div className="space-y-3">
+            {c?.diagnostico && <p className="text-foreground/80 italic">{c.diagnostico}</p>}
+            {([5,3,1] as const).map(h => {
+              const k = h === 5 ? "horizonte_5" : h === 3 ? "horizonte_3" : "horizonte_1";
+              const v = (c as any)?.[k];
+              if (!v) return null;
+              return (
+                <div key={h} className="border-l-2 border-accent/50 pl-3 text-xs">
+                  <div className="font-semibold text-primary">{h} ano{h>1?"s":""} · meta: <span className="text-accent">{v.meta_financeira}</span></div>
+                  <div><span className="font-medium">North Star:</span> {v.north_star}</div>
+                  <div><span className="font-medium">Missão:</span> {v.missao}</div>
+                  {Array.isArray(v.valores) && v.valores.length > 0 && <div><span className="font-medium">Valores:</span> {v.valores.join(", ")}</div>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      />
+
       {plans !== undefined && plans.length === 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
           <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" aria-hidden="true" />

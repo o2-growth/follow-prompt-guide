@@ -50,6 +50,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_suggestions: {
+        Row: {
+          content_json: Json
+          created_at: string
+          error_message: string | null
+          generated_at: string | null
+          id: string
+          model: string | null
+          status: string
+          surface: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_json?: Json
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          status?: string
+          surface: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_json?: Json
+          created_at?: string
+          error_message?: string | null
+          generated_at?: string | null
+          id?: string
+          model?: string | null
+          status?: string
+          surface?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
