@@ -22,7 +22,7 @@ export default function Terms() {
           <h2 className="font-serif text-xl font-semibold text-primary mt-6">1. Objeto</h2>
           <p>
             Strategic OS é um produto da O2inc, oferecido como bônus exclusivo aos participantes
-            da palestra G4 Educação. O acesso é gratuito durante o ciclo da Mesa Redonda.
+            do G4 Tools. O acesso é gratuito durante o ciclo da Mesa Redonda.
           </p>
 
           <h2 className="font-serif text-xl font-semibold text-primary mt-6">2. Conta</h2>

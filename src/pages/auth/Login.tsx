@@ -26,7 +26,7 @@ export function AuthLayout({ title, subtitle, children, footer }: {
           </p>
           <p className="mt-6 font-mono text-xs uppercase tracking-widest text-foreground/70">— Pedro Albite, CEO O2 Inc.</p>
         </div>
-        <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">Presente exclusivo · Palestra G4 Educação</div>
+        <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 inline-flex items-center gap-2">Presente exclusivo · <LogoG4Tools height={16} /></div>
       </div>
       <div className="flex items-center justify-center p-6 md:p-12 bg-background">
         <div className="w-full max-w-sm">
