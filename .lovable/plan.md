@@ -1,94 +1,58 @@
-## Diagnóstico atual (página a página)
+# Rebrand: Aplicar Design System O2 Inc. + Logos oficiais
 
-Hoje a IA (`generate-action-plan`) roda **uma vez ao final do onboarding** e o resultado só aparece no **PDF**. Nas telas, é tudo manual:
+## O que muda visualmente
+- **Modo padrão vira DARK** (`#3A3A3A` de fundo, texto off-white). Light mode continua existindo mas como variante.
+- **Cor de acento muda de dourado `#C9A24A` → Lima Green** (`#63F161` no dark, `#00D842` no light).
+- **Tipografia**: Source Serif Pro/Inter → **Tusker Grotesk** (display, uppercase) + **Montserrat** (body) + **JetBrains Mono** (eyebrows/labels).
+- **Logos placeholder em SVG inline são substituídos pelos PNGs oficiais** entregues (logo completo + ícone, versões black/white).
+- Cantos: pill em botões, `12px` em cards, `20px` em cards grandes.
+- Easing único: `cubic-bezier(0.2, 0.8, 0.2, 1)`.
 
-| Página | O que existe hoje | O que falta (vs. promessa do PDF) |
-|---|---|---|
-| Dashboard | Score geral + radar + atalhos | Nenhuma leitura do plano da IA. CEO entra e não vê "o que fazer agora". |
-| Visão | 3 cards (5/3/1 ano) com North Star/Missão/Valores manuais | Sem sugestão da IA; o usuário tem razão — hoje a página é "preencha do zero", desconectada de crescimento/financeiro. |
-| OKRs | CRUD de objetivos + KRs + check-in semanal | IA não sugere objetivos, KRs nem KPIs com base no diagnóstico. |
-| Financeiro | DRE projetado 5 anos, 3 cenários, premissas únicas | Apenas 5 anos; sem 1 e 3 anos lado a lado; sem leitura/recomendação da IA sobre as premissas. |
-| Time | Catálogo estático de papéis + headcount por faturamento | Sem priorização das contratações pela IA com base em maturidade + projeção financeira. |
-| Rituais | Toggle de templates fixos | Sem sugestão da IA de quais ativar primeiro e por quê. |
-| Maturidade Financeira | Empty state apontando para plataforma externa | OK (aguardando link externo). |
-| Diagnóstico 360 | Empty state apontando para plataforma externa | OK. |
-| Exportar PDF | Lista promete: capa, sumário, visão 5/3/1, OKRs, financeiro 3 cenários × 5 anos, time, rituais, **análise IA completa** | A "análise IA" no PDF existe mas é genérica e não bate com o que está nas telas (telas estão vazias da IA). |
+## Co-branding O2 × G4
+- A marca G4 Educação **continua aparecendo** ao lado da O2 (header, footer, auth, capa do PDF) — apenas a O2 ganha logo oficial. G4 segue como wordmark placeholder (sem asset oficial recebido). Confirmar se está OK manter assim.
 
-**Veredito honesto:** o PDF promete entregar uma análise estratégica robusta, mas as telas ainda são "formulários em branco". A IA está confinada ao final. Precisa virar **camada transversal**: aparecer em cada página relevante, ancorada no diagnóstico do cliente.
+## Implementação
 
----
+### 1. Assets
+- Copiar os 4 PNGs do logo + 4 do ícone para `src/assets/branding/`:
+  - `o2-logo-black.png`, `o2-logo-white.png`
+  - `o2-icon-black.png`, `o2-icon-white.png` (na verdade ambos os ícones vêm em verde — usar como icon principal)
+- Baixar **Tusker Grotesk** do Drive oficial não é possível pelo agente (Drive privado). Plano: usar **Anton + Barlow Condensed** (Google Fonts) como display até o usuário subir os `.woff2` em `public/fonts/tusker-grotesk/`. O `@font-face` fica preparado para quando os arquivos chegarem.
 
-## Plano de mudanças
+### 2. Tokens (`src/index.css`)
+Reescrever o `:root` com os tokens O2 (lima, ink, bg dark) e adicionar `[data-theme="light"]`. Atualizar `--font-sans`, `--font-serif`, `--font-mono`. Definir `data-theme="dark"` no `<html>`.
 
-### 1. IA por página (núcleo da entrega)
+### 3. Tailwind (`tailwind.config.ts`)
+- `fontFamily.display` = Tusker → Anton fallback; `fontFamily.sans` = Montserrat; `fontFamily.mono` = JetBrains Mono.
+- Religar `darkMode: ["class"]` se necessário (mas tokens já fazem o trabalho via `data-theme`).
 
-Criar **um endpoint por superfície** (não um monolito), porque cada um precisa de prompt + schema próprios e precisa rodar sob demanda:
+### 4. Componentes branding (`src/components/branding/`)
+- `LogoO2inc.tsx`: trocar SVG inline por `<img src={variant === 'dark' ? whiteLogo : blackLogo} />` com tamanhos preservados.
+- Criar `LogoO2Icon.tsx` (só o símbolo, para sidebar colapsado e favicon).
+- `CoBranding.tsx`: separador `×` continua, mas em mono/lima.
+- `LogoG4.tsx`: ajustar cores para usar tokens novos (lima no "4" em vez de dourado).
 
-- `ai-okrs-suggest` → recebe `tenant_id`; lê maturidade + visão + projeção + setor; devolve **3 objetivos sugeridos** com 2-4 KRs cada, KPIs de acompanhamento e justificativa baseada no resultado financeiro alvo.
-- `ai-team-suggest` → contexto: faturamento atual, projeção realista 1/3/5a, maturidade time. Devolve **roadmap de contratações** (próximos 6m / 12m / 24m) por área, com seniority, custo aproximado, motivo (gargalo de receita, processo, etc).
-- `ai-financial-analyze` → lê premissas atuais + setor + projeções; devolve **leitura crítica das premissas** (crescimento realista? margem coerente?), riscos, alavancas e **recomendação de cenário ideal para 1, 3 e 5 anos** com metas intermediárias.
-- `ai-rituals-suggest` → devolve quais rituais ativar primeiro, em que ordem, e por quê (baseado em maturidade rituais + tamanho time).
-- `ai-vision-suggest` → devolve North Star/Missão refinados conectados à projeção financeira.
-- `ai-maturity-coach` (página Maturidade Financeira local, opcional) → leitura textual do score após preenchido.
+### 5. Index.html
+- Adicionar `<link>` Google Fonts (Montserrat, JetBrains Mono, Anton, Barlow Condensed).
+- Trocar favicon para o ícone O2 (`public/favicon.png` ← copy do `Icon.png`).
+- Adicionar `data-theme="dark"` no `<html>`.
 
-Reaproveitar o pattern de `generate-action-plan` (membership check, tool calling, persistência). Persistir em uma tabela única `ai_suggestions` (`tenant_id, surface, content_json, status, generated_at`) — uma row por superfície, sobrescrita ao regenerar.
+### 6. Páginas afetadas (visual sweep, sem mudar lógica)
+- `Landing.tsx`: hero gradient passa a ser dark + lima glow; "Presente exclusivo G4 Educação" chip vira mono uppercase verde lima; títulos viram Tusker uppercase.
+- `AppShell.tsx`: sidebar já é dark — apenas trocar acentos dourado→lima e logo placeholder pelo `LogoO2inc` (variant white) + `LogoO2Icon` quando colapsado.
+- `auth/Login.tsx` + `Signup.tsx`: split-screen com lado esquerdo dark + lima accent.
+- `ExportPDF.tsx`: paleta Navy/Gold do PDF muda para **Ink-900 + Lima 500** (PDF segue light, então usa Lima 500). Logo da capa passa a ser o PNG oficial. Datas/mono labels ganham JetBrains Mono.
+- Botões: `Button` usa pill (`rounded-full`) com Lima accent.
+- Cards: `border-radius` 12px, hover ganha `border-strong`.
 
-**UI por página:**
-- Card `<AIInsightPanel>` reutilizável no topo de cada página afetada, com:
-  - Estado vazio: botão "Gerar análise da IA"
-  - Estado pronto: resumo + sugestões + botão "Aplicar" (ex.: cria os OKRs sugeridos com 1 clique) e "Regerar"
-  - Loading + tratamento de 429/402 (toast amigável)
+### 7. Memory update
+- Atualizar `mem://index.md` com nova paleta (lima/ink em vez de navy/gold) e fontes (Tusker/Montserrat em vez de Inter/Source Serif).
 
-### 2. Repensar a página "Visão"
+## Tópicos para confirmação
+1. **Manter co-branding G4** ao lado da O2 (sim, padrão) ou remover G4 e deixar só O2?
+2. **Tusker Grotesk**: você consegue subir os 3 `.woff2` em `public/fonts/tusker-grotesk/` depois? Sem isso, fica Anton (Google Fonts) que é visualmente próximo mas não idêntico.
+3. **PDF**: manter em modo light (papel branco) com lima 500 como acento? Recomendado para impressão.
 
-Concordo com o usuário: hoje Visão é abstrata e desconectada. Duas opções:
-
-- **A) Manter, mas reposicionar** como "Norte estratégico" — o card de cada horizonte mostra North Star + **a meta financeira correspondente vinda da projeção** (Ano 1 / Ano 3 / Ano 5) e os OKRs/contratações ligados. Ela vira o "amarrador" entre financeiro, OKRs e time. **(Recomendado.)**
-- **B) Remover** e mover North Star/Missão/Valores para um bloco menor dentro de Configurações. PDF ainda usa.
-
-Esperar decisão do usuário antes de mexer (ver questions abaixo).
-
-### 3. Aprofundar Financeiro (1 / 3 / 5 anos)
-
-- Hoje só `HORIZON = 5`. Mudar para **3 horizontes paralelos (1, 3, 5)** com mesmas premissas-base mas exibidos em **3 abas de horizonte × 3 cenários**.
-- Adicionar campos extras nas premissas: **CAC, ticket médio, churn, headcount** — necessários para a IA fazer leitura útil e cruzar com Time.
-- Persistir em `financial_projections` que já suporta `horizon_years` — basta gerar as rows 1 e 3 também via `init_projections` adaptado.
-- Card de IA no topo: "Leitura das premissas + cenário ideal recomendado".
-
-### 4. Alinhar promessa do PDF com a realidade
-
-Atualizar a lista de bullets em `ExportPDF.tsx` para refletir o que de fato sai (e o que vamos entregar):
-
-- Capa branded
-- Sumário executivo (score + top 3 prioridades + top 3 frameworks)
-- **Análise IA por dimensão** (uma seção por página: visão, OKRs, financeiro, time, rituais)
-- Visão 5/3/1 ligada às metas financeiras
-- OKRs vigentes + OKRs sugeridos pela IA (com KPIs)
-- Projeção financeira **1/3/5 anos × 3 cenários** + leitura crítica da IA
-- Roadmap de contratações priorizado
-- Rituais ativos + sugeridos
-- Plano de 90 dias
-
-O PDF passa a ler de `ai_suggestions` (uma seção por superfície) em vez de só `ai_action_plans`. Mantemos `generate-action-plan` como "rodar tudo de uma vez" no final do onboarding e em "Regerar tudo" no PDF.
-
-### 5. Dashboard
-
-Adicionar um card "Próximas ações sugeridas pela IA" lendo de `ai_suggestions` — top 3 itens cross-surface, com link para a página correspondente.
-
----
-
-## Detalhes técnicos
-
-- **Tabela nova:** `ai_suggestions(id, tenant_id, surface text, status text, content_json jsonb, model, generated_at, created_at, updated_at)` + UNIQUE(tenant_id, surface) + RLS members read / block direct write.
-- **Edge functions novas:** 5 funções (1 por surface) compartilhando helper de contexto. Modelo padrão `google/gemini-2.5-pro` (qualidade) ou `google/gemini-3-flash-preview` (custo) — começar com flash e subir se a qualidade pedir.
-- **Tool calling** com schemas estritos por surface (mesmo padrão do `generate-action-plan`).
-- **Trigger automático:** ao concluir onboarding, disparar todas as 5 em paralelo (e o `generate-action-plan` continua para o resumo executivo do PDF).
-- **`generate-action-plan`** passa a também popular `ai_suggestions` por surface no mesmo run, para evitar duplicar custo.
-- **Componente `<AIInsightPanel>`** em `src/components/ai/AIInsightPanel.tsx` parametrizado por `surface` + render slot por tipo de conteúdo.
-- **Aplicar sugestão:** mutações que criam OKRs / ativam rituais / preenchem Visão a partir do JSON da IA (1 clique).
-
----
-
-## Antes de implementar
-
-Tenho 2 dúvidas para fechar o escopo:
+## Fora de escopo
+- Animações `breathe` / spinning rings do hero — só se quiser depois.
+- Refatoração completa de todos os componentes shadcn (mantemos os existentes, tokens novos cuidam do resto).
