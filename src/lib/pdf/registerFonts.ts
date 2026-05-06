@@ -21,7 +21,9 @@ export const FONT = {
 } as const;
 
 const SPECS: Array<{ url: string; vfs: string; family: string; style: "normal" | "bold" | "italic" }> = [
+  // Anton has only one weight; alias it as both normal and bold so existing setFont(FONT.display, "bold") works.
   { url: AntonRegular, vfs: "Anton-Regular.ttf", family: FONT.display, style: "normal" },
+  { url: AntonRegular, vfs: "Anton-Regular.ttf", family: FONT.display, style: "bold" },
   { url: MontserratRegular, vfs: "Montserrat-Regular.ttf", family: FONT.body, style: "normal" },
   { url: MontserratBold, vfs: "Montserrat-Bold.ttf", family: FONT.body, style: "bold" },
   { url: MontserratItalic, vfs: "Montserrat-Italic.ttf", family: FONT.body, style: "italic" },
