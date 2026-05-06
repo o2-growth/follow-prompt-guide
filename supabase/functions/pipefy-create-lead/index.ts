@@ -105,14 +105,12 @@ Deno.serve(async (req) => {
     const userClient = createClient(SUPABASE_URL, ANON, {
       global: { headers: { Authorization: authHeader } },
     });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } =
-      await userClient.auth.getClaims(token);
-    if (claimsErr || !claims?.claims) {
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
       return respond(401, { ok: false, error: "Invalid token" });
     }
-    const userId = claims.claims.sub as string;
-    const email = claims.claims.email as string | undefined;
+    const userId = userData.user.id;
+    const email = userData.user.email ?? undefined;
 
     const admin = createClient(SUPABASE_URL, SERVICE);
 
