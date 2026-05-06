@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { CalendarCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 
 type RitualKind = "daily" | "weekly" | "monthly" | "quarter" | "one_on_one";
 
@@ -76,6 +77,25 @@ export default function Rituals() {
           <p className="text-muted-foreground">Ative os rituais que sua empresa vai praticar.</p>
         </div>
       </div>
+
+      <AIInsightPanel
+        surface="rituals"
+        title="Rituais recomendados"
+        description="Quais rituais ativar primeiro e em que ordem, com base na maturidade da sua empresa."
+        renderContent={(c) => (
+          <div className="space-y-3">
+            {c?.diagnostico && <p className="text-foreground/80 italic">{c.diagnostico}</p>}
+            <ol className="space-y-2 list-decimal list-inside">
+              {(c?.rituais ?? []).sort((a: any, b: any) => (a.ordem_implantacao ?? 99) - (b.ordem_implantacao ?? 99)).map((r: any, i: number) => (
+                <li key={i} className="text-xs">
+                  <span className="font-semibold text-primary">{r.ritual}</span> <span className="text-muted-foreground">· {r.cadencia} · {r.participantes}</span>
+                  <div className="text-muted-foreground pl-4">{r.por_que}</div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      />
 
       {loadingTpl ? (
         <div className="flex items-center justify-center py-10">
