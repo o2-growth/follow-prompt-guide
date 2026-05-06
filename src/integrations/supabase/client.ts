@@ -2,8 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Lovable Cloud convention: anon key + project URL são públicos por design
+// (RLS no Postgres protege dados). Fallback hardcoded evita app crash em prod
+// se env vars não forem injetadas no build; .env local sobrescreve em dev.
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ?? 'https://rzzxlaknknrqfvbsfelx.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6enhsYWtua25ycWZ2YnNmZWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMzA3MzksImV4cCI6MjA5MzYwNjczOX0.ZTRe13vw0La5EFsh2DMMpdlXtW9cp6uPAS1XkLeIvY4';
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
