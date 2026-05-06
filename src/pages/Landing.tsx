@@ -109,8 +109,13 @@ export default function Landing() {
             <span className="hidden md:inline text-muted-foreground/60">·</span>
             <span>© {new Date().getFullYear()} Strategic OS</span>
           </div>
-          <div className="text-center md:text-right">
-            Bônus exclusivo · Palestra G4 Educação · Pedro Albite, CEO O2inc
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right">
+            <span>Bônus exclusivo · Palestra G4 Educação · Pedro Albite, CEO O2inc</span>
+            <span className="hidden md:inline text-muted-foreground/40">·</span>
+            <div className="flex items-center gap-3">
+              <Link to="/privacidade" className="hover:text-primary underline-offset-4 hover:underline">Privacidade</Link>
+              <Link to="/termos" className="hover:text-primary underline-offset-4 hover:underline">Termos</Link>
+            </div>
           </div>
         </div>
       </footer>
