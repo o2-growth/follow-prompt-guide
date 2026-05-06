@@ -509,10 +509,27 @@ export default function ExportPDF() {
               "Projeção financeira em 3 cenários (otimista / realista / pessimista) com DRE 5 anos",
               "Estrutura de time recomendada por área com seniority + headcount sugerido",
               "Calendário de rituais ativos com agendas",
-              "Plano de ação para os próximos 90 dias",
+              "Análise estratégica gerada por IA: prioridades, frameworks recomendados, OKRs sugeridos, refino de visão, time, projeção ideal e plano de 90 dias personalizado",
             ].map(t => <li key={t} className="flex gap-2"><span className="text-accent">›</span>{t}</li>)}
           </ul>
-          <div className="pt-4">
+
+          <div className="pt-4 border-t mt-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="font-medium text-foreground">Análise estratégica por IA</div>
+                <div className="text-xs text-muted-foreground">
+                  {(bundle as any)?.aiPlan
+                    ? `Plano gerado em ${new Date((bundle as any).aiPlan.generated_at ?? (bundle as any).aiPlan.created_at).toLocaleString("pt-BR")}.`
+                    : "Ainda não gerado. Será gerado automaticamente após o onboarding ou clique abaixo."}
+                </div>
+              </div>
+              <Button variant="outline" onClick={regenerateAi}>
+                {(bundle as any)?.aiPlan ? "Regerar com IA" : "Gerar com IA"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="pt-2">
             <Button onClick={generate} disabled={generating} className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-gold">
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <><FileDown className="h-4 w-4 mr-2" /> Gerar PDF agora</>}
             </Button>
