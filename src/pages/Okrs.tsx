@@ -28,6 +28,7 @@ import { CalendarCheck, Plus, Target, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { EmptyState } from "@/components/common/EmptyState";
 import { captureError } from "@/lib/sentry";
+import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 
 const QUARTERS = ["Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Q1 2027"];
 
@@ -141,6 +142,52 @@ export default function Okrs() {
           <p className="text-muted-foreground">Objetivos e Key Results da empresa.</p>
         </div>
       </div>
+
+      <AIInsightPanel
+        surface="okrs"
+        title="OKRs sugeridos pela IA"
+        description="A IA sugere 3 objetivos trimestrais com KRs mensuráveis e KPIs de acompanhamento, conectados à sua meta financeira."
+        applyAction={{
+          label: "Criar OKRs sugeridos",
+          onApply: async (c) => {
+            if (!tenantId || !user) return;
+            for (const o of (c?.objetivos ?? []) as any[]) {
+              const { data: obj, error } = await supabase
+                .from("okrs_objectives")
+                .insert({ tenant_id: tenantId, owner_id: user.id, level: "company", title: o.titulo, description: o.por_que, quarter: QUARTERS[0] })
+                .select()
+                .single();
+              if (error || !obj) continue;
+              for (const kr of (o.key_results ?? []) as any[]) {
+                const num = parseFloat(String(kr.meta).replace(/[^\d.]/g, "")) || 100;
+                await supabase.from("key_results").insert({
+                  tenant_id: tenantId, objective_id: obj.id, title: kr.kr, target: num, current: 0, unit: kr.kpi_acompanhamento ?? "",
+                });
+              }
+            }
+            qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
+          },
+        }}
+        renderContent={(c) => (
+          <div className="space-y-4">
+            {c?.diagnostico && <p className="text-foreground/80 italic">{c.diagnostico}</p>}
+            {(c?.objetivos ?? []).map((o: any, i: number) => (
+              <div key={i} className="border-l-2 border-accent/50 pl-3">
+                <div className="font-semibold text-primary">◆ {o.titulo}</div>
+                <div className="text-xs text-muted-foreground mb-2">{o.por_que}</div>
+                <ul className="space-y-1">
+                  {(o.key_results ?? []).map((kr: any, j: number) => (
+                    <li key={j} className="text-xs">
+                      <span className="font-medium">• {kr.kr}</span>
+                      <div className="text-muted-foreground pl-3">Meta: {kr.meta}{kr.baseline ? ` · Baseline: ${kr.baseline}` : ""} · KPI: {kr.kpi_acompanhamento}</div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      />
 
       <Card className="shadow-soft">
         <CardHeader><CardTitle className="font-serif text-lg">Novo objetivo</CardTitle></CardHeader>
