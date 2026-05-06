@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { captureError } from "@/lib/sentry";
+import { AIInsightPanel } from "@/components/ai/AIInsightPanel";
 
 type Inputs = { revenue: number; growth: number; margin: number; tax: number };
 type ScenarioKey = "optimistic" | "realistic" | "pessimistic";
@@ -21,7 +22,8 @@ const SCENARIO_META: { key: ScenarioKey; label: string; multiplier: number; colo
   { key: "pessimistic", label: "Pessimista", multiplier: 0.7, color: "hsl(0 70% 45%)" },
 ];
 
-const HORIZON = 5;
+const HORIZONS = [1, 3, 5] as const;
+type Horizon = typeof HORIZONS[number];
 const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
 function project(input: Inputs, years: number, mult: number) {
