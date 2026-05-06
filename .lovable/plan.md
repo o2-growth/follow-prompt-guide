@@ -1,35 +1,29 @@
-## Reorganizar a seção "O que você vai construir" em 3 módulos
+# Trocar "Palestra G4 Educação" pela logo G4 Tools
 
-Substituir a grade de 6 cards por **3 cards grandes** representando os pilares Estratégico, Tático e Operacional. Linguagem simples para CEO de PME.
+## Objetivo
+Substituir as menções textuais a "Palestra G4 Educação" pela **logo G4 Tools** (PNG com fundo removido) no rodapé da landing, na tela de login e nos termos.
 
-### Mudança em `src/pages/Landing.tsx`
+## Passos
 
-Trocar a constante `FEATURES` (atual: 6 itens) e a renderização da grade por:
+1. **Preparar a imagem da logo**
+   - Copiar `user-uploads://626214124_18092907791294580_7243772065179250383_n.jpg` para `src/assets/branding/g4-tools-source.jpg`.
+   - Usar `imagegen--edit_image` para remover o fundo bege e gerar `src/assets/branding/g4-tools-logo.png` com fundo transparente, mantendo o ícone da bússola + wordmark "G4 TOOLS" originais.
 
-```text
-ESTRATÉGICO  →  ícone Compass · "Para onde vamos"
-                Visão 5/3/1, north star e diagnóstico de maturidade
-                em 5 dimensões.
+2. **Criar componente `LogoG4Tools`**
+   - Novo arquivo `src/components/branding/LogoG4Tools.tsx`.
+   - Recebe `size` ("sm" | "md") e `className`.
+   - Renderiza `<img>` com a PNG transparente, `alt="G4 Tools"`, altura fixa (~16–20px no rodapé, ~20–24px no login).
+   - Para uso em fundo escuro: aplicar `filter: invert(1) brightness(1.1)` via classe utilitária para garantir contraste (a logo original é azul-marinho sobre bege).
 
-TÁTICO       →  ícone Target · "Como vamos chegar lá"
-                OKRs trimestrais com KRs mensuráveis e estrutura
-                de time com frameworks (SPIN, MEDDIC, RACI).
+3. **Atualizar referências**
+   - `src/pages/Landing.tsx` linha 123: substituir o `<span>Bônus exclusivo · Palestra G4 Educação · Pedro Albite, CEO O2inc</span>` por uma composição: texto "Bônus exclusivo" + `<LogoG4Tools />` + "Pedro Albite, CEO O2inc", separados por bullets.
+   - `src/pages/Landing.tsx` linha 46: trocar "Presente exclusivo G4 Educação" por "Presente exclusivo" + logo G4 Tools inline (mesma altura do texto, alinhada vertical).
+   - `src/pages/auth/Login.tsx` linha 29: trocar "Presente exclusivo · Palestra G4 Educação" por "Presente exclusivo" + `<LogoG4Tools />`.
+   - `src/pages/legal/Terms.tsx` linha 25: trocar "palestra G4 Educação" por "G4 Tools" (texto puro, dentro de parágrafo legal — logo seria estranha aqui).
 
-OPERACIONAL  →  ícone CalendarCheck · "O que fazemos toda semana"
-                Rituais (daily, weekly, 1:1, monthly, quarter)
-                com agenda e check-ins.
-```
+4. **Memória**
+   - Atualizar `mem://index.md`: trocar "O2 Inc. × G4 Educação" por "O2 Inc. × G4 Tools" e remover a nota sobre placeholder G4.
 
-- Eyebrow continua "O que você vai construir".
-- Título troca para algo mais simples: **"Três níveis. Um plano só."**
-- Grid passa de `md:grid-cols-3` 6 cards para `md:grid-cols-3` 3 cards (cada card maior, mais respirável).
-- Mantém o estilo dos cards atuais (mesmo radius 12px, ícone em pill lima, texto Tusker no título).
-- Remove ícones agora não usados do import (`Users2`, `Gauge` se ficarem órfãos).
-
-### O que NÃO muda
-
-- Sidebar, rotas, telas internas (Vision/OKRs/Team/Rituals/Maturity/Financial) ficam exatamente como estão.
-- Hero, header, restante da landing intactos.
-- Nenhuma migração de banco.
-
-Confirma?
+## Fora de escopo
+- Não trocar o `LogoG4` existente no header (co-branding "O2 × G4 Educação") — só as menções a "Palestra G4 Educação" no rodapé/login/termos.
+- Se você quiser também atualizar o header co-branded, me avise e eu incluo.
