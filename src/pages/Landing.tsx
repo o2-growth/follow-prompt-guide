@@ -40,8 +40,29 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="gradient-hero text-foreground">
-        <div className="container max-w-6xl py-20 md:py-28">
+      <section className="relative overflow-hidden bg-ink-900 text-foreground">
+        {/* Grid blueprint */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, hsl(0 0% 100% / 0.05) 1px, transparent 1px), linear-gradient(to bottom, hsl(0 0% 100% / 0.05) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage: "radial-gradient(ellipse at center, black 35%, transparent 80%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 35%, transparent 80%)",
+          }}
+        />
+        {/* Halo lima */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-40 -left-40 h-[640px] w-[640px] rounded-full z-0"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(119 84% 66% / 0.18), transparent 60%)",
+          }}
+        />
+        <div className="container max-w-6xl py-20 md:py-28 relative z-10">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-medium mb-6">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Presente exclusivo <LogoG4Tools height={14} className="ml-1" />
@@ -99,7 +120,7 @@ export default function Landing() {
       </section>
 
       {/* PDF callout */}
-      <section className="py-20 bg-muted/40 border-y border-border">
+      <section className="py-20 bg-ink-900 border-y border-accent/20">
         <div className="container max-w-4xl text-center">
           <FileDown className="h-10 w-10 text-accent mx-auto mb-4" />
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-4">

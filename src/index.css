@@ -67,7 +67,7 @@
     --font-serif: 'Tusker Grotesk', 'Anton', 'Barlow Condensed', 'Impact', sans-serif;
     --font-mono: 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
 
-    --gradient-hero: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 45%, #1f3a25 100%);
+    --gradient-hero: linear-gradient(180deg, #1a1a1a 0%, #1a1a1a 100%);
     --gradient-gold: linear-gradient(135deg, #63F161, #00D842);
     --gradient-surface: linear-gradient(180deg, #2e2e2e, #242424);
 
@@ -85,6 +85,8 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 100%;
     --sidebar-ring: 119 84% 66%;
+
+    --ink-900: 0 0% 10%;
   }
 
   /* Light mode — variante. Aplique em superfícies impressas/PDF preview se necessário. */
