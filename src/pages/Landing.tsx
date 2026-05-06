@@ -30,10 +30,10 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-foreground/10 bg-background/80 backdrop-blur sticky top-0 z-30">
-        <div className="container max-w-6xl flex items-center justify-between py-4">
+        <div className="container max-w-6xl flex items-center justify-between py-4 gap-2">
           <CoBranding size="sm" variant="dark" />
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm"><Link to="/auth/login">Entrar</Link></Button>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/auth/login">Entrar</Link></Button>
             <Button asChild size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground"><Link to="/auth/signup">Criar conta</Link></Button>
           </div>
         </div>
@@ -56,49 +56,49 @@ export default function Landing() {
         {/* Halo lima */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 -left-40 h-[640px] w-[640px] rounded-full z-0"
+          className="pointer-events-none absolute -top-32 -left-32 h-[400px] w-[400px] md:h-[640px] md:w-[640px] md:-top-40 md:-left-40 rounded-full z-0"
           style={{
             background:
               "radial-gradient(circle, hsl(119 84% 66% / 0.18), transparent 60%)",
           }}
         />
-        <div className="container max-w-6xl py-20 md:py-28 relative z-10">
+        <div className="container max-w-6xl py-14 md:py-28 relative z-10">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-medium mb-6">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Presente exclusivo <LogoG4Tools height={14} className="ml-1" />
             </div>
-            <h1 className="font-serif text-4xl md:text-6xl font-bold leading-tight tracking-tight">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl font-bold leading-tight tracking-tight">
               Transforme visão em <span className="text-accent">plano executável</span> de 5 anos.
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-foreground/80 leading-relaxed">
+            <p className="mt-6 text-base md:text-xl text-foreground/80 leading-relaxed">
               A plataforma estratégica criada por <strong className="text-accent">Pedro Albite (O2 Inc.)</strong> — 
               maior CFO-as-a-Service do Brasil — para CEOs de PMEs construírem em 30 minutos 
               o plano completo: visão, OKRs, estrutura de time e rituais.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-3">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-gold">
+              <Button asChild size="lg" className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground shadow-gold">
                 <Link to="/auth/signup">
                   Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="border-foreground/30 text-foreground hover:bg-foreground/10">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto border-foreground/30 text-foreground hover:bg-foreground/10">
                 <Link to="/auth/login">Já tenho conta</Link>
               </Button>
             </div>
             
-            <div className="mt-8 flex flex-wrap gap-6 text-sm text-foreground/70">
-              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Em português, mobile e desktop</div>
-              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> PDF completo do plano</div>
-              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Acesso pleno ao workspace</div>
+            <div className="mt-8 flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-6 text-sm text-foreground/70">
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent shrink-0" /> Em português, mobile e desktop</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent shrink-0" /> PDF completo do plano</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent shrink-0" /> Acesso pleno ao workspace</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-20 md:py-28">
+      <section className="py-14 md:py-28">
         <div className="container max-w-6xl">
-          <div className="max-w-2xl mb-14">
+          <div className="max-w-2xl mb-10 md:mb-14">
             <div className="text-xs uppercase tracking-widest text-accent font-semibold mb-3">O que você vai construir</div>
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-primary">
               Três níveis. Um plano só.
@@ -106,7 +106,7 @@ export default function Landing() {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {PILLARS.map(({ icon: Icon, eyebrow, title, desc }) => (
-              <div key={eyebrow} className="bg-card border border-border rounded-xl p-8 shadow-soft hover:shadow-elegant transition-smooth">
+              <div key={eyebrow} className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-soft hover:shadow-elegant transition-smooth">
                 <div className="h-12 w-12 rounded-lg gradient-gold flex items-center justify-center shadow-gold mb-5">
                   <Icon className="h-6 w-6 text-accent-foreground" />
                 </div>
@@ -120,30 +120,28 @@ export default function Landing() {
       </section>
 
       {/* PDF callout */}
-      <section className="py-20 bg-ink-900 border-y border-accent/20">
+      <section className="py-14 md:py-20 bg-ink-900 border-y border-accent/20">
         <div className="container max-w-4xl text-center">
           <FileDown className="h-10 w-10 text-accent mx-auto mb-4" />
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-primary mb-4">
             Saia com o seu plano em PDF.
           </h2>
-          <p className="text-lg text-muted-foreground mb-8">
+          <p className="text-base md:text-lg text-muted-foreground mb-8">
             Capa branded O2inc + G4, sumário executivo, visão 5/3/1, OKRs,
             organograma recomendado, calendário de rituais e plano de ação 90 dias.
           </p>
-          <Button asChild size="lg"><Link to="/auth/signup">Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+          <Button asChild size="lg" className="w-full sm:w-auto"><Link to="/auth/signup">Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
         </div>
       </section>
 
       <footer className="border-t border-border py-8">
-        <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-3">
+        <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground text-center md:text-left">
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
             <CoBranding size="sm" variant="dark" />
-            <span className="hidden md:inline text-muted-foreground/60">·</span>
             <span>© {new Date().getFullYear()} Strategic OS</span>
           </div>
-          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right">
-            <span className="inline-flex items-center gap-2">Bônus exclusivo · <LogoG4Tools height={14} /> · Pedro Albite, CEO O2inc</span>
-            <span className="hidden md:inline text-muted-foreground/40">·</span>
+          <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
+            <span className="inline-flex items-center gap-2 text-xs md:text-sm">Bônus exclusivo · <LogoG4Tools height={14} /> · Pedro Albite, CEO O2inc</span>
             <div className="flex items-center gap-3">
               <Link to="/privacidade" className="hover:text-primary underline-offset-4 hover:underline">Privacidade</Link>
               <Link to="/termos" className="hover:text-primary underline-offset-4 hover:underline">Termos</Link>
