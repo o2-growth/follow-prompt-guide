@@ -37,7 +37,7 @@ export default function Landing() {
               Transforme visão em <span className="text-accent">plano executável</span> de 5 anos.
             </h1>
             <p className="mt-6 text-lg md:text-xl text-foreground/80 leading-relaxed">
-              A plataforma estratégica criada por <strong className="text-accent-foreground">Pedro Albite (O2inc)</strong> — 
+              A plataforma estratégica criada por <strong className="text-accent">Pedro Albite (O2 Inc.)</strong> — 
               maior CFO-as-a-Service do Brasil — para CEOs de PMEs construírem em 30 minutos 
               o plano completo: visão, OKRs, DRE projetado, estrutura de time e rituais.
             </p>
