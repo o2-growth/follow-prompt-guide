@@ -41,7 +41,7 @@ export default function ExportPDF() {
     queryKey: ["export-bundle", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
-      const [vision, objectives, maturity, rituals, projections, dre, roleTemplates, frameworks] = await Promise.all([
+      const [vision, objectives, maturity, rituals, projections, dre, roleTemplates, frameworks, aiPlan] = await Promise.all([
         supabase.from("vision_plans").select("*").eq("tenant_id", tenantId!),
         supabase.from("okrs_objectives").select("*, key_results(*)").eq("tenant_id", tenantId!),
         supabase.from("maturity_assessments").select("*").eq("tenant_id", tenantId!).order("taken_at", { ascending: false }),
@@ -50,6 +50,7 @@ export default function ExportPDF() {
         supabase.from("dre_line_items").select("*").eq("tenant_id", tenantId!),
         supabase.from("role_templates").select("*"),
         (supabase.from as any)("framework_library").select("*").order("display_order"),
+        (supabase.from as any)("ai_action_plans").select("*").eq("tenant_id", tenantId!).eq("status", "ready").order("generated_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       const latestMaturity: Record<string, number> = {};
       (maturity.data ?? []).forEach(a => {
@@ -64,9 +65,25 @@ export default function ExportPDF() {
         dre: dre.data ?? [],
         roleTemplates: roleTemplates.data ?? [],
         frameworks: (frameworks?.data as any[]) ?? [],
+        aiPlan: (aiPlan?.data as any) ?? null,
       };
     },
   });
+
+  const regenerateAi = async () => {
+    if (!tenantId) return;
+    try {
+      toast.loading("Gerando plano de ação com IA…", { id: "ai-plan" });
+      const { error } = await supabase.functions.invoke("generate-action-plan", { body: { tenant_id: tenantId } });
+      toast.dismiss("ai-plan");
+      if (error) throw error;
+      toast.success("Plano de ação gerado!");
+      window.location.reload();
+    } catch (e: any) {
+      toast.dismiss("ai-plan");
+      toast.error(e?.message ?? "Erro ao gerar plano de IA");
+    }
+  };
 
   const generate = async () => {
     if (!bundle || !m) return;
