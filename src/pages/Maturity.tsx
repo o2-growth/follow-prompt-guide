@@ -57,7 +57,7 @@ export default function Maturity() {
           title="Descubra seu Grau de Maturidade Financeira"
           description="De forma detalhada e aprofundada, você fará uma pesquisa em nossa plataforma especializada em análise de maturidade financeira. Ao concluir, você recebe seu grau de maturidade e um plano de ação prático para evoluir o financeiro da sua empresa — os resultados aparecem aqui para alimentar suas recomendações priorizadas."
           ctaLabel="Descobrir minha Maturidade Financeira"
-          ctaHref="https://mindful-interface-lab.lovable.app"
+          ctaHref="https://graudematuridade.lovable.app/"
           density="lg"
         />
       )}
