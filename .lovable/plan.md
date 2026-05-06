@@ -1,50 +1,62 @@
-# Adicionar "Esqueceu sua senha"
+## Objetivo
 
-Hoje a tela de Login não tem link para recuperar senha, e não existem rotas/páginas para o fluxo. Vou criar o fluxo completo usando o Supabase Auth (já configurado no projeto).
+1. Adicionar campo **telefone obrigatório** no cadastro (Signup).
+2. Após signup bem-sucedido, criar automaticamente um **card no Pipefy** (pipe `304018800`, fase "Eventos") com os dados do lead, incluindo `Tipo de Origem do lead = Eventos` e `Origem do lead = G4 São Paulo - 6 de Maio`.
+3. Falha no Pipefy **não bloqueia** o signup — erro vai para log e `audit_log`.
 
-## O que será feito
+---
 
-1. **Novo link no Login** (`src/pages/auth/Login.tsx`)
-   - Adicionar `Esqueceu sua senha?` logo abaixo do campo de Senha, alinhado à direita, levando para `/auth/forgot-password`.
-   - Estilo discreto, usando tokens existentes (text-muted-foreground + hover accent), mantendo a estética O2 dark.
+## Mudanças
 
-2. **Nova página `ForgotPassword.tsx`** (`src/pages/auth/ForgotPassword.tsx`)
-   - Reusa o `AuthLayout` já exportado em `Login.tsx`.
-   - Form com campo de e-mail.
-   - Chama `supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/auth/reset-password" })`.
-   - Mostra estado de sucesso ("Se o e-mail existir, enviamos um link…") sem revelar se o e-mail existe (boa prática).
-   - Toast de erro em caso de falha de rede.
-   - Link de volta para `/auth/login`.
+### 1. Banco
 
-3. **Nova página `ResetPassword.tsx`** (`src/pages/auth/ResetPassword.tsx`)
-   - Página pública (fora do `ProtectedRoute`).
-   - Detecta sessão de recovery: o Supabase coloca tokens no hash da URL e o `onAuthStateChange` dispara `PASSWORD_RECOVERY`. Vou usar esse listener para liberar o form.
-   - Form com nova senha + confirmação (validação mínima: 8+ chars, igualdade).
-   - Chama `supabase.auth.updateUser({ password })`.
-   - Em sucesso: toast + redirect para `/auth/callback` (que já resolve tenant/onboarding).
-   - Se acessada sem sessão de recovery, mostra mensagem "Link inválido ou expirado" + botão para pedir novo link.
+Adicionar coluna `phone` em `user_profiles` e atualizar `handle_new_user` para persistir o telefone vindo do `raw_user_meta_data`.
 
-4. **Registrar rotas em `src/App.tsx`**
-   - `/auth/forgot-password` → `ForgotPassword`
-   - `/auth/reset-password` → `ResetPassword`
-   - Ambas públicas (fora do `ProtectedRoute`), assim como `/auth/login`.
+```sql
+ALTER TABLE public.user_profiles ADD COLUMN phone text;
+```
+Atualizar `handle_new_user()` para incluir `phone := NEW.raw_user_meta_data->>'phone'` no INSERT do profile.
 
-## Validação (para ter certeza que funciona)
+### 2. Frontend — `src/pages/auth/Signup.tsx`
 
-- Build automático do Lovable após o patch.
-- Smoke test manual sugerido no preview:
-  1. `/auth/login` → clicar em "Esqueceu sua senha?" → digita e-mail → recebe confirmação visual.
-  2. Abrir o link recebido por e-mail → cai em `/auth/reset-password` → define nova senha → entra automaticamente.
-- Se algo falhar nos logs do console/rede, ajusto antes de fechar.
+- Novo campo `<Input type="tel">` "Telefone (WhatsApp)" com máscara BR `(11) 99999-9999`, obrigatório, validação mínima de 10 dígitos.
+- Passar `phone` em `options.data` do `supabase.auth.signUp`.
+- Após `signUp` retornar OK, invocar edge function `pipefy-create-lead` (não bloqueante — `.catch` apenas loga via Sentry).
+
+### 3. Secret
+
+Solicitar via `add_secret` o token Pipefy: **`PIPEFY_API_TOKEN`** (Personal Access Token gerado em Pipefy → Configurações → Tokens pessoais).
+
+### 4. Edge Function — `supabase/functions/pipefy-create-lead/index.ts`
+
+- Validação JWT (`getClaims`) — só usuário logado pode disparar para si mesmo.
+- Busca `user_profiles` (nome, telefone) + `auth.users` (email) via service role.
+- Chama Pipefy GraphQL API:
+  ```
+  POST https://api.pipefy.com/graphql
+  Headers: Authorization: Bearer ${PIPEFY_API_TOKEN}
+  ```
+- Mutation `createCard` no `pipe_id: 304018800`, com `phase_id` da fase "Eventos" (descoberto via query `pipe(id:){phases{id name}}` no primeiro deploy — guardado como constante; se "Eventos" não existir, usa fase inicial e loga warning).
+- `fields_attributes`: nome, email, telefone, `tipo_de_origem_do_lead = "Eventos"`, `origem_do_lead = "G4 São Paulo - 6 de Maio"`.
+- Em sucesso: `log_event('pipefy_card_created', payload={card_id})`.
+- Em falha: `log_event('pipefy_card_failed', payload={error})` + retorna 200 (não bloqueia signup) com `{ok:false, error}`.
+
+### 5. Validação
+
+- Smoke: criar conta de teste com telefone → ver card aparecer no pipe Pipefy 304018800 fase Eventos.
+- Ver `audit_log` para `pipefy_card_created`.
+- Forçar erro (token inválido) e confirmar que signup ainda completa.
+
+---
 
 ## Detalhes técnicos
 
-- Usa apenas `supabase.auth.resetPasswordForEmail` e `supabase.auth.updateUser` — nenhum schema/SQL/edge function novo.
-- Sem mudanças em RLS, tabelas ou config de auth (e-mail já está habilitado).
-- E-mails de recovery usam o template padrão do Lovable Cloud (sem necessidade de setup de domínio próprio agora).
-- Mantém padrão visual: Tusker/Montserrat, lima-400 como acento, cantos pill nos botões.
+- Field IDs do Pipefy são gerados pelo nome do campo (slug). Como não temos acesso ao schema do pipe, a edge function vai primeiro fazer um `pipe(id:304018800){start_form_fields{id label}}` na primeira invocação, cachear em memória do worker, e mapear nomes ("Nome", "E-mail", "Telefone", "Tipo de Origem do lead", "Origem do lead") → `id`. Se algum campo não bater, loga e segue com os que casaram.
+- Telefone armazenado como string só com dígitos no metadata; máscara só visual.
+- Não vamos pedir telefone para usuários que entram via Google OAuth nesta primeira versão (o fluxo OAuth não tem campo). Pode ser adicionado depois com um modal pós-callback se você quiser.
 
 ## Fora do escopo
 
-- Customização visual do e-mail de recovery (exigiria scaffold de templates + domínio verificado).
-- Rate limiting custom — fica com o default do Supabase.
+- Atualizar telefone depois do cadastro (Settings).
+- Sincronizar mudanças de profile com o card Pipefy.
+- Mover card entre fases conforme onboarding.
