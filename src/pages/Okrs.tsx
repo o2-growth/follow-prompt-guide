@@ -8,10 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Target, Trash2 } from "lucide-react";
+import { CalendarCheck, Plus, Target, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { EmptyState } from "@/components/common/EmptyState";
+import { captureError } from "@/lib/sentry";
+
+const QUARTERS = ["Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Q1 2027"];
 
 export default function Okrs() {
   const { user } = useAuth();
@@ -22,15 +40,54 @@ export default function Okrs() {
   const { data: objectives = [] } = useQuery({
     queryKey: ["objectives", tenantId],
     enabled: !!tenantId,
-    queryFn: async () => (await supabase.from("okrs_objectives").select("*, key_results(*)").eq("tenant_id", tenantId!).order("created_at")).data ?? [],
+    queryFn: async () =>
+      (await supabase
+        .from("okrs_objectives")
+        .select("*, key_results(*)")
+        .eq("tenant_id", tenantId!)
+        .order("created_at")).data ?? [],
   });
 
-  const [newObj, setNewObj] = useState({ title: "", description: "", quarter: "" });
+  const krIds = (objectives as any[]).flatMap(o => (o.key_results ?? []).map((k: any) => k.id));
+  const { data: checkins = [] } = useQuery({
+    queryKey: ["okr-checkins", tenantId, krIds.join(",")],
+    enabled: !!tenantId && krIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("okr_check_ins")
+        .select("*")
+        .in("key_result_id", krIds)
+        .order("week", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const [newObj, setNewObj] = useState({ title: "", description: "", quarter: QUARTERS[0] });
+
   const addObjective = async () => {
-    if (!tenantId || !newObj.title) return;
-    await supabase.from("okrs_objectives").insert({ tenant_id: tenantId, owner_id: user!.id, level: "company", ...newObj });
-    setNewObj({ title: "", description: "", quarter: "" });
+    if (!tenantId || !newObj.title || !user) return;
+    const { error } = await supabase.from("okrs_objectives").insert({
+      tenant_id: tenantId, owner_id: user.id, level: "company", ...newObj,
+    });
+    if (error) {
+      captureError(error, { step: "addObjective" });
+      toast.error(error.message ?? "Erro ao criar objetivo");
+      return;
+    }
+    setNewObj({ title: "", description: "", quarter: QUARTERS[0] });
     qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
+    try {
+      await (supabase.rpc as any)("log_event", {
+        p_tenant_id: tenantId,
+        p_action: "okr_created",
+        p_entity_type: "okrs_objectives",
+        p_entity_id: null,
+        p_payload: { title: newObj.title, quarter: newObj.quarter },
+      });
+    } catch (e) {
+      captureError(e, { step: "log_event okr_created" });
+    }
     toast.success("Objetivo criado");
   };
 
@@ -40,14 +97,39 @@ export default function Okrs() {
     qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
   };
 
-  const updateKR = async (id: string, current: number) => {
-    await supabase.from("key_results").update({ current }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
-  };
-
   const removeObj = async (id: string) => {
     await supabase.from("okrs_objectives").delete().eq("id", id);
     qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
+  };
+
+  const submitCheckin = async (kr: any, value: number, confidence: number, note: string) => {
+    if (!tenantId) return;
+    try {
+      // Trava a "semana" no monday corrente (ISO week start) pra evitar duplicar.
+      const today = new Date();
+      const day = (today.getUTCDay() + 6) % 7;
+      const monday = new Date(today);
+      monday.setUTCDate(today.getUTCDate() - day);
+      const weekISODate = monday.toISOString().slice(0, 10);
+
+      const { error: insErr } = await supabase.from("okr_check_ins").insert({
+        tenant_id: tenantId,
+        key_result_id: kr.id,
+        week: weekISODate,
+        value,
+        confidence,
+        note,
+      });
+      if (insErr) throw insErr;
+      const { error: updErr } = await supabase.from("key_results").update({ current: value }).eq("id", kr.id);
+      if (updErr) throw updErr;
+      qc.invalidateQueries({ queryKey: ["objectives", tenantId] });
+      qc.invalidateQueries({ queryKey: ["okr-checkins", tenantId] });
+      toast.success("Check-in salvo");
+    } catch (e: any) {
+      captureError(e, { step: "submitCheckin" });
+      toast.error(e?.message ?? "Erro ao salvar check-in");
+    }
   };
 
   return (
@@ -64,8 +146,15 @@ export default function Okrs() {
         <CardHeader><CardTitle className="font-serif text-lg">Novo objetivo</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="grid sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2"><Input placeholder="Ex.: Triplicar receita em 2026" value={newObj.title} onChange={e => setNewObj({ ...newObj, title: e.target.value })} /></div>
-            <div><Input placeholder="Q1 2026" value={newObj.quarter} onChange={e => setNewObj({ ...newObj, quarter: e.target.value })} /></div>
+            <div className="sm:col-span-2">
+              <Input placeholder="Ex.: Triplicar receita em 2026" value={newObj.title} onChange={e => setNewObj({ ...newObj, title: e.target.value })} />
+            </div>
+            <div>
+              <Select value={newObj.quarter} onValueChange={v => setNewObj({ ...newObj, quarter: v })}>
+                <SelectTrigger><SelectValue placeholder="Trimestre" /></SelectTrigger>
+                <SelectContent>{QUARTERS.map(q => <SelectItem key={q} value={q}>{q}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
           </div>
           <Textarea rows={2} placeholder="Descrição (opcional)" value={newObj.description} onChange={e => setNewObj({ ...newObj, description: e.target.value })} />
           <Button onClick={addObjective}><Plus className="h-4 w-4 mr-1" /> Adicionar</Button>
@@ -73,9 +162,11 @@ export default function Okrs() {
       </Card>
 
       <div className="space-y-4">
-        {objectives.map((o: any) => {
-          const krs = o.key_results ?? [];
-          const avg = krs.length ? Math.round(krs.reduce((a: number, k: any) => a + (k.target ? (k.current / k.target) * 100 : 0), 0) / krs.length) : 0;
+        {(objectives as any[]).map((o: any) => {
+          const krs = (o.key_results ?? []) as any[];
+          const avg = krs.length
+            ? Math.round(krs.reduce((a, k) => a + (k.target ? (k.current / k.target) * 100 : 0), 0) / krs.length)
+            : 0;
           return (
             <Card key={o.id} className="shadow-soft">
               <CardHeader>
@@ -96,16 +187,33 @@ export default function Okrs() {
                 <div className="space-y-2">
                   {krs.map((kr: any) => {
                     const pct = kr.target ? Math.round((kr.current / kr.target) * 100) : 0;
+                    const krCheckins = (checkins as any[]).filter(c => c.key_result_id === kr.id).slice(0, 4);
                     return (
                       <div key={kr.id} className="border border-border rounded-lg p-3">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex-1 text-sm font-medium">{kr.title}</div>
                           <div className="flex items-center gap-2 text-xs">
-                            <Input type="number" value={kr.current ?? 0} onChange={e => updateKR(kr.id, Number(e.target.value))} className="w-20 h-8" />
-                            <span className="text-muted-foreground">/ {kr.target} {kr.unit}</span>
+                            <span className="text-muted-foreground">
+                              {kr.current ?? 0} / {kr.target} {kr.unit}
+                            </span>
+                            <CheckinDialog kr={kr} onSubmit={submitCheckin} />
                           </div>
                         </div>
                         <Progress value={pct} className="mt-2 h-1.5" />
+                        {krCheckins.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                            {krCheckins.map((c: any) => {
+                              const d = new Date(c.week);
+                              const week = `Sem ${getISOWeek(d)}`;
+                              const pctC = kr.target ? Math.round(((c.value ?? 0) / kr.target) * 100) : 0;
+                              return (
+                                <span key={c.id} className="border border-border rounded px-2 py-0.5">
+                                  {week} · {pctC}% · {c.confidence ?? "—"}/10
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -116,12 +224,87 @@ export default function Okrs() {
           );
         })}
         {!objectives.length && (
-          <div className="text-center py-12 text-muted-foreground border-2 border-dashed border-border rounded-xl">
-            Nenhum objetivo ainda. Crie o primeiro acima.
-          </div>
+          <EmptyState
+            icon={Target}
+            title="Defina seu primeiro objetivo"
+            description="Objetivos ambiciosos guiam a execução. Use o formulário acima para criar um objetivo trimestral e adicione 2 a 4 Key Results mensuráveis."
+          />
         )}
       </div>
     </div>
+  );
+}
+
+function getISOWeek(date: Date) {
+  const target = new Date(date.valueOf());
+  const dayNr = (date.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const diff = (target.getTime() - firstThursday.getTime()) / 86400000;
+  return 1 + Math.round((diff - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+}
+
+function CheckinDialog({
+  kr,
+  onSubmit,
+}: {
+  kr: any;
+  onSubmit: (kr: any, value: number, confidence: number, note: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState<number>(kr.current ?? 0);
+  const [confidence, setConfidence] = useState<number>(7);
+  const [note, setNote] = useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-8">
+          <CalendarCheck className="h-3.5 w-3.5 mr-1" /> Check-in
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="font-serif">Check-in semanal — {kr.title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <Label>Valor atual ({kr.unit ?? ""})</Label>
+            <Input type="number" value={value} onChange={e => setValue(Number(e.target.value))} />
+            <p className="text-xs text-muted-foreground mt-1">Meta: {kr.target} {kr.unit}</p>
+          </div>
+          <div>
+            <Label>Confiança em atingir a meta: {confidence}/10</Label>
+            <Slider
+              min={1}
+              max={10}
+              step={1}
+              value={[confidence]}
+              onValueChange={v => setConfidence(v[0] ?? 7)}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <Label>Nota</Label>
+            <Textarea
+              rows={3}
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="Ex.: Pipeline cresceu 12%, mas ciclo médio aumentou. Bloqueio: time SDR sem head."
+            />
+          </div>
+          <Button
+            onClick={() => {
+              onSubmit(kr, value, confidence, note);
+              setOpen(false);
+              setNote("");
+            }}
+          >
+            Salvar check-in
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

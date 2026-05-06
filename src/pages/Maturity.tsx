@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gauge } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { EmptyState } from "@/components/common/EmptyState";
+import { cn } from "@/lib/utils";
 
 const DIM_LABELS: Record<string, string> = { vision: "Visão", okrs: "OKRs", rituals: "Rituais", team: "Time", financial: "Financeiro" };
 
@@ -35,6 +37,7 @@ export default function Maturity() {
     dim: DIM_LABELS[d], score: data?.[d] ?? 0, key: d,
   }));
   const ranked = [...radar].sort((a, b) => a.score - b.score);
+  const hasAssessment = !!data && Object.keys(data).length > 0;
 
   return (
     <div className="space-y-6">
@@ -46,21 +49,33 @@ export default function Maturity() {
         </div>
       </div>
 
-      <Card className="shadow-soft">
-        <CardHeader><CardTitle className="font-serif">Radar de maturidade</CardTitle></CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={radar}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="dim" tick={{ fill: "hsl(var(--foreground))", fontSize: 13 }} />
-              <PolarRadiusAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-              <Radar dataKey="score" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.4} />
-            </RadarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {!hasAssessment && (
+        <EmptyState
+          icon={Gauge}
+          title="Faça seu diagnóstico"
+          description="Responda ao assessment de 5 dimensões (visão, OKRs, rituais, time e financeiro) para ver seu radar de maturidade e receber recomendações priorizadas."
+          ctaLabel="Iniciar diagnóstico"
+          ctaTo="/onboarding"
+        />
+      )}
 
-      <div>
+      {hasAssessment && !radar.every(d => d.score === 0) && (
+        <Card className="shadow-soft">
+          <CardHeader><CardTitle className="font-serif">Radar de maturidade</CardTitle></CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radar}>
+                <PolarGrid stroke="hsl(var(--border))" />
+                <PolarAngleAxis dataKey="dim" tick={{ fill: "hsl(var(--foreground))", fontSize: 13 }} />
+                <PolarRadiusAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                <Radar dataKey="score" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.4} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className={cn(!hasAssessment && "opacity-60 pointer-events-none")}>
         <h2 className="font-serif text-xl font-semibold text-primary mb-4">Recomendações priorizadas</h2>
         <div className="space-y-3">
           {ranked.map((r, i) => (

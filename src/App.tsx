@@ -1,27 +1,43 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import AppShell from "@/components/layout/AppShell";
+import { Loader2 } from "lucide-react";
+
+// Páginas leves (pré-carga ok)
 import Landing from "@/pages/Landing";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
 import Callback from "@/pages/auth/Callback";
-import Onboarding from "@/pages/Onboarding";
-import Dashboard from "@/pages/Dashboard";
-import Vision from "@/pages/Vision";
-import Okrs from "@/pages/Okrs";
-import Financial from "@/pages/Financial";
-import Team from "@/pages/Team";
-import Rituals from "@/pages/Rituals";
-import Maturity from "@/pages/Maturity";
-import ExportPDF from "@/pages/ExportPDF";
-import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
+// Páginas pesadas (Recharts, jsPDF, formulários grandes) — code-split
+const AppShell = lazy(() => import("@/components/layout/AppShell"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Vision = lazy(() => import("@/pages/Vision"));
+const Okrs = lazy(() => import("@/pages/Okrs"));
+const Financial = lazy(() => import("@/pages/Financial"));
+const Team = lazy(() => import("@/pages/Team"));
+const Rituals = lazy(() => import("@/pages/Rituals"));
+const Maturity = lazy(() => import("@/pages/Maturity"));
+const ExportPDF = lazy(() => import("@/pages/ExportPDF"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const PrivacyPolicy = lazy(() => import("@/pages/legal/PrivacyPolicy"));
+const Terms = lazy(() => import("@/pages/legal/Terms"));
+
 const queryClient = new QueryClient();
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,26 +45,30 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
-          <Route path="/auth/callback" element={<Callback />} />
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/vision" element={<Vision />} />
-            <Route path="/okrs" element={<Okrs />} />
-            <Route path="/financial" element={<Financial />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/rituals" element={<Rituals />} />
-            <Route path="/maturity" element={<Maturity />} />
-            <Route path="/export" element={<ExportPDF />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="/app" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth/login" element={<Login />} />
+            <Route path="/auth/signup" element={<Signup />} />
+            <Route path="/auth/callback" element={<Callback />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos" element={<Terms />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/vision" element={<Vision />} />
+              <Route path="/okrs" element={<Okrs />} />
+              <Route path="/financial" element={<Financial />} />
+              <Route path="/team" element={<Team />} />
+              <Route path="/rituals" element={<Rituals />} />
+              <Route path="/maturity" element={<Maturity />} />
+              <Route path="/export" element={<ExportPDF />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CoBranding } from "@/components/branding/CoBranding";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -39,7 +40,7 @@ export default function AppShell() {
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
         <div className="px-6 py-6 border-b border-sidebar-border">
           <div className="font-serif text-xl font-bold text-sidebar-primary">Strategic OS</div>
-          <div className="text-xs text-sidebar-foreground/70 mt-0.5">O2inc × G4 Educação</div>
+          <div className="mt-2"><CoBranding size="sm" variant="dark" /></div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {NAV.map(({ to, label, icon: Icon }) => (

@@ -70,25 +70,9 @@
     --sidebar-ring: 42 50% 54%;
   }
 
-  .dark {
-    --background: 217 70% 8%;
-    --foreground: 60 14% 95%;
-    --card: 217 60% 12%;
-    --card-foreground: 60 14% 95%;
-    --popover: 217 60% 12%;
-    --popover-foreground: 60 14% 95%;
-    --primary: 42 50% 54%;
-    --primary-foreground: 217 70% 10%;
-    --secondary: 138 40% 28%;
-    --secondary-foreground: 60 14% 95%;
-    --accent: 42 50% 54%;
-    --accent-foreground: 217 70% 10%;
-    --muted: 217 40% 18%;
-    --muted-foreground: 217 15% 65%;
-    --border: 217 40% 20%;
-    --input: 217 40% 20%;
-    --ring: 42 50% 54%;
-  }
+  /* Dark mode removido do escopo MVP — a tela executiva sóbria opera somente
+     no tema claro. Caso seja reintroduzido, restaurar bloco .dark { … } aqui
+     e religar `darkMode: ["class"]` em tailwind.config.ts. */
 }
 
 @layer base {

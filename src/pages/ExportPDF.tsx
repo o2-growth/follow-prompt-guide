@@ -7,6 +7,30 @@ import { FileDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { captureError } from "@/lib/sentry";
+
+const DIM_LABEL: Record<string, string> = {
+  vision: "Visão",
+  okrs: "OKRs",
+  rituals: "Rituais",
+  team: "Time",
+  financial: "Financeiro",
+};
+
+const REVENUE_BAND_TO_KEY = (band?: string | null): "<5M" | "5-20M" | ">20M" => {
+  if (!band) return "<5M";
+  if (band.includes("Acima") || band.includes("50M") || band.includes("200M")) return ">20M";
+  if (band.includes("10M")) return "5-20M";
+  return "<5M";
+};
+
+const FRAMEWORK_RECOMMENDATIONS_BY_DIM: Record<string, string[]> = {
+  vision: ["OKR"],
+  okrs: ["OKR", "RACI"],
+  rituals: ["RACI", "Eisenhower"],
+  team: ["RACI", "MEDDIC"],
+  financial: ["RACI", "Eisenhower"],
+};
 
 export default function ExportPDF() {
   const { data: m } = useTenant();
@@ -17,15 +41,30 @@ export default function ExportPDF() {
     queryKey: ["export-bundle", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
-      const [vision, objectives, maturity, rituals] = await Promise.all([
+      const [vision, objectives, maturity, rituals, projections, dre, roleTemplates, frameworks] = await Promise.all([
         supabase.from("vision_plans").select("*").eq("tenant_id", tenantId!),
         supabase.from("okrs_objectives").select("*, key_results(*)").eq("tenant_id", tenantId!),
         supabase.from("maturity_assessments").select("*").eq("tenant_id", tenantId!).order("taken_at", { ascending: false }),
         supabase.from("rituals").select("*").eq("tenant_id", tenantId!).eq("active", true),
+        supabase.from("financial_projections").select("*").eq("tenant_id", tenantId!),
+        supabase.from("dre_line_items").select("*").eq("tenant_id", tenantId!),
+        supabase.from("role_templates").select("*"),
+        (supabase.from as any)("framework_library").select("*").order("display_order"),
       ]);
       const latestMaturity: Record<string, number> = {};
-      (maturity.data ?? []).forEach(a => { if (latestMaturity[a.dimension] === undefined) latestMaturity[a.dimension] = a.score; });
-      return { vision: vision.data ?? [], objectives: objectives.data ?? [], maturity: latestMaturity, rituals: rituals.data ?? [] };
+      (maturity.data ?? []).forEach(a => {
+        if (latestMaturity[a.dimension] === undefined) latestMaturity[a.dimension] = a.score;
+      });
+      return {
+        vision: vision.data ?? [],
+        objectives: objectives.data ?? [],
+        maturity: latestMaturity,
+        rituals: rituals.data ?? [],
+        projections: projections.data ?? [],
+        dre: dre.data ?? [],
+        roleTemplates: roleTemplates.data ?? [],
+        frameworks: (frameworks?.data as any[]) ?? [],
+      };
     },
   });
 
@@ -36,13 +75,16 @@ export default function ExportPDF() {
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       const W = doc.internal.pageSize.getWidth();
       const H = doc.internal.pageSize.getHeight();
-      const tenant = (m.tenants as any) ?? {};
+      const tenant = ((m as any).tenants as any) ?? {};
       const today = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
       const NAVY: [number, number, number] = [11, 31, 58];
       const GOLD: [number, number, number] = [201, 162, 74];
       const GREEN: [number, number, number] = [30, 81, 40];
       const INK: [number, number, number] = [40, 40, 50];
+
+      const fmt = (n: number) =>
+        n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
       const footer = (page: number) => {
         doc.setFontSize(8); doc.setTextColor(120);
@@ -64,6 +106,7 @@ export default function ExportPDF() {
       doc.text(tenant.name ?? "Workspace", 50, H / 2 + 10);
       doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(220);
       if (tenant.sector) doc.text(`Setor: ${tenant.sector}  ·  Porte: ${tenant.size_band ?? "—"}`, 50, H / 2 + 36);
+      if (tenant.cnpj) doc.text(`CNPJ: ${tenant.cnpj}`, 50, H / 2 + 56);
       doc.text(today, 50, H - 60);
       doc.addPage();
 
@@ -82,80 +125,202 @@ export default function ExportPDF() {
         return y + lines.length * lineHeight;
       };
 
-      // Sumário executivo
+      // ============ Sumário executivo ============
       newSection("Sumário executivo");
-      const overall = Object.values(bundle.maturity).length
-        ? Math.round(Object.values(bundle.maturity).reduce((a, b) => a + b, 0) / Object.values(bundle.maturity).length) : 0;
+      const matValues = Object.values(bundle.maturity);
+      const overall = matValues.length ? Math.round(matValues.reduce((a, b) => a + b, 0) / matValues.length) : 0;
       doc.setTextColor(...INK); doc.setFont("helvetica", "normal"); doc.setFontSize(11);
       let y = 110;
       doc.setFont("helvetica", "bold"); doc.text(`Score de maturidade geral: ${overall}/100`, 40, y); y += 24;
       doc.setFont("helvetica", "normal");
       Object.entries(bundle.maturity).forEach(([k, v]) => {
-        const name = k === "vision" ? "Visão" : k === "okrs" ? "OKRs" : k === "rituals" ? "Rituais" : k === "team" ? "Time" : "Financeiro";
-        doc.text(`• ${name}: ${v}/100`, 60, y); y += 18;
+        doc.text(`• ${DIM_LABEL[k] ?? k}: ${v}/100`, 60, y); y += 18;
       });
       y += 12;
       doc.setFont("helvetica", "bold"); doc.text("Top 3 prioridades:", 40, y); y += 18;
       doc.setFont("helvetica", "normal");
       const top3 = Object.entries(bundle.maturity).sort((a, b) => a[1] - b[1]).slice(0, 3);
+      const recommendedFrameworkKeys = new Set<string>();
       top3.forEach(([k]) => {
-        const name = k === "vision" ? "Fortalecer visão e cascata estratégica" :
-                     k === "okrs" ? "Implantar ciclo de OKRs trimestrais" :
-                     k === "rituals" ? "Estabelecer rituais de gestão" :
-                     k === "team" ? "Estruturar organograma e responsabilidades" :
-                     "Construir DRE projetado e cenários";
+        const name =
+          k === "vision" ? "Fortalecer visão e cascata estratégica" :
+          k === "okrs" ? "Implantar ciclo de OKRs trimestrais" :
+          k === "rituals" ? "Estabelecer rituais de gestão" :
+          k === "team" ? "Estruturar organograma e responsabilidades" :
+          "Construir DRE projetado e cenários";
         doc.text(`› ${name}`, 60, y); y += 18;
+        (FRAMEWORK_RECOMMENDATIONS_BY_DIM[k] ?? []).forEach(fk => recommendedFrameworkKeys.add(fk));
       });
+
+      y += 10;
+      doc.setFont("helvetica", "bold"); doc.text("Top 3 frameworks recomendados:", 40, y); y += 18;
+      doc.setFont("helvetica", "normal");
+      const recFrameworks = (bundle.frameworks as any[])
+        .filter(f => recommendedFrameworkKeys.has(f.key))
+        .slice(0, 3);
+      if (recFrameworks.length === 0) {
+        doc.text("• Implante OKR como sistema de objetivos.", 60, y); y += 16;
+        doc.text("• Use RACI pra clarear responsabilidades.", 60, y); y += 16;
+        doc.text("• Eisenhower pra priorização do CEO.", 60, y); y += 16;
+      } else {
+        recFrameworks.forEach(f => {
+          doc.text(`• ${f.name} — ${f.when_to_apply ?? ""}`, 60, y); y += 16;
+        });
+      }
       footer(page); doc.addPage(); page++;
 
-      // Visão
+      // ============ Visão estratégica ============
       newSection("Visão estratégica"); y = 110;
       [5, 3, 1].forEach(h => {
         const p = bundle.vision.find(v => v.year_horizon === h);
         doc.setFont("times", "bold"); doc.setFontSize(16); doc.setTextColor(...NAVY);
         doc.text(`${h} ano${h > 1 ? "s" : ""}`, 40, y); y += 18;
         doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
-        if (p?.north_star) { doc.setFont("helvetica", "bold"); doc.text("North Star: ", 40, y);
-          doc.setFont("helvetica", "normal"); y = writeLines(p.north_star, 100, y, W - 140); y += 6; }
-        if (p?.mission) { doc.setFont("helvetica", "bold"); doc.text("Missão: ", 40, y);
-          doc.setFont("helvetica", "normal"); y = writeLines(p.mission, 100, y, W - 140); y += 6; }
-        y += 14;
+        if (p?.north_star) {
+          doc.setFont("helvetica", "bold"); doc.text("North Star: ", 40, y);
+          doc.setFont("helvetica", "normal"); y = writeLines(p.north_star, 100, y, W - 140); y += 6;
+        }
+        if (p?.mission) {
+          doc.setFont("helvetica", "bold"); doc.text("Missão: ", 40, y);
+          doc.setFont("helvetica", "normal"); y = writeLines(p.mission, 100, y, W - 140); y += 6;
+        }
+        const values = Array.isArray((p as any)?.values_json) ? ((p as any).values_json as any[]) : [];
+        if (values.length) {
+          doc.setFont("helvetica", "bold"); doc.text("Valores: ", 40, y);
+          doc.setFont("helvetica", "normal"); y = writeLines(values.join(", "), 100, y, W - 140); y += 6;
+        }
+        y += 10;
       });
       footer(page); doc.addPage(); page++;
 
-      // OKRs
+      // ============ OKRs ============
       newSection("OKRs vigentes"); y = 110;
       doc.setFontSize(10); doc.setTextColor(...INK);
       bundle.objectives.forEach((o: any) => {
         if (y > H - 100) { footer(page); doc.addPage(); page++; newSection("OKRs (cont.)"); y = 110; }
         doc.setFont("helvetica", "bold"); doc.setTextColor(...NAVY);
-        y = writeLines(`◆ ${o.title}`, 40, y, W - 80);
+        y = writeLines(`◆ ${o.title}${o.quarter ? `  [${o.quarter}]` : ""}`, 40, y, W - 80);
         doc.setFont("helvetica", "normal"); doc.setTextColor(...INK);
         (o.key_results ?? []).forEach((kr: any) => {
-          const pct = kr.target ? Math.round((kr.current / kr.target) * 100) : 0;
+          const pct = kr.target ? Math.round(((kr.current ?? 0) / kr.target) * 100) : 0;
           y = writeLines(`   • ${kr.title} — ${kr.current ?? 0}/${kr.target} (${pct}%)`, 50, y, W - 100);
         });
         y += 10;
       });
       footer(page); doc.addPage(); page++;
 
-      // Rituais
+      // ============ Projeção financeira (3 cenários, 1 página por cenário) ============
+      const SCENARIO_LABELS: Record<string, string> = {
+        optimistic: "Otimista",
+        realistic: "Realista",
+        pessimistic: "Pessimista",
+      };
+      const HORIZON = 5;
+      for (const scenarioKey of ["optimistic", "realistic", "pessimistic"] as const) {
+        newSection(`Projeção financeira — ${SCENARIO_LABELS[scenarioKey]}`); y = 110;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+        const proj = (bundle.projections as any[]).find(p => p.scenario === scenarioKey && p.horizon_years === HORIZON);
+        const dreRows = (bundle.dre as any[]).filter(d => proj && d.projection_id === proj.id);
+
+        if (!proj || dreRows.length === 0) {
+          doc.text("Nenhuma projeção persistida ainda. Acesse /financial e ajuste as premissas.", 40, y);
+        } else {
+          // Premissas
+          const ij = (proj.inputs_json as any) ?? {};
+          doc.setFont("helvetica", "bold"); doc.text("Premissas:", 40, y); y += 16;
+          doc.setFont("helvetica", "normal");
+          const baseInputs = ij.base_inputs ?? {};
+          doc.text(`• Receita base: ${fmt(Number(baseInputs.revenue ?? ij.revenue_year1 ?? 0))}`, 60, y); y += 14;
+          doc.text(`• Crescimento anual: ${baseInputs.growth ?? Math.round((ij.growth_rate ?? 0) * 100)}% × multiplier ${(ij.scenario_multiplier ?? 1).toFixed(2)}`, 60, y); y += 14;
+          doc.text(`• Margem EBITDA: ${baseInputs.margin ?? Math.round((ij.ebitda_margin ?? 0) * 100)}%`, 60, y); y += 14;
+          doc.text(`• Imposto: ${baseInputs.tax ?? Math.round((ij.effective_tax ?? 0) * 100)}%`, 60, y); y += 22;
+
+          // Tabela DRE 5y
+          doc.setFont("helvetica", "bold"); doc.text("DRE projetado:", 40, y); y += 16;
+
+          // Pivota dre rows: linha por label, colunas anos 1..5
+          const labels = ["Receita", "OPEX", "EBITDA", "Lucro líquido"];
+          const byYearLabel: Record<string, Record<number, number>> = {};
+          for (const r of dreRows) {
+            byYearLabel[r.label] = byYearLabel[r.label] ?? {};
+            byYearLabel[r.label][r.year] = Number(r.amount);
+          }
+
+          const colW = (W - 80 - 100) / HORIZON;
+          doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+          doc.text("Linha", 40, y);
+          for (let yr = 1; yr <= HORIZON; yr++) {
+            doc.text(`Ano ${yr}`, 140 + (yr - 1) * colW, y, { align: "left" });
+          }
+          y += 14;
+          doc.setFont("helvetica", "normal");
+          for (const label of labels) {
+            doc.text(label, 40, y);
+            for (let yr = 1; yr <= HORIZON; yr++) {
+              const val = byYearLabel[label]?.[yr] ?? 0;
+              doc.text(fmt(val), 140 + (yr - 1) * colW, y);
+            }
+            y += 14;
+          }
+        }
+        footer(page); doc.addPage(); page++;
+      }
+
+      // ============ Estrutura de Time recomendada ============
+      newSection("Estrutura de time recomendada"); y = 110;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+      const revBandKey = REVENUE_BAND_TO_KEY(tenant.revenue_band);
+      const areas = ["commercial", "ops", "finance", "product"];
+      const areaLabel: Record<string, string> = { commercial: "Comercial", ops: "Operações", finance: "Finanças", product: "Produto" };
+
+      for (const a of areas) {
+        if (y > H - 100) { footer(page); doc.addPage(); page++; newSection("Estrutura de time (cont.)"); y = 110; }
+        const areaRoles = (bundle.roleTemplates as any[]).filter(r => r.area === a);
+        if (!areaRoles.length) continue;
+        doc.setFont("times", "bold"); doc.setFontSize(13); doc.setTextColor(...NAVY);
+        doc.text(areaLabel[a] ?? a, 40, y); y += 18;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(...INK);
+        for (const r of areaRoles) {
+          if (y > H - 90) { footer(page); doc.addPage(); page++; newSection("Estrutura de time (cont.)"); y = 110; }
+          // Headcount recomendado por revenue_band
+          const recArr = Array.isArray(r.recommended_headcount_by_revenue) ? r.recommended_headcount_by_revenue as any[] : [];
+          const rec = recArr.find(x => x.revenue_band === revBandKey);
+          const headcountTxt = rec ? `Recomendado: ${rec.count} pessoas` : "";
+
+          doc.setFont("helvetica", "bold");
+          y = writeLines(`▸ ${r.role_name}${r.seniority ? `  (${r.seniority})` : ""}`, 40, y, W - 80);
+          doc.setFont("helvetica", "normal");
+          if (r.description) y = writeLines(r.description, 50, y, W - 100);
+          if (Array.isArray(r.framework_keys) && r.framework_keys.length) {
+            y = writeLines(`Frameworks: ${r.framework_keys.join(", ")}`, 50, y, W - 100);
+          }
+          if (headcountTxt) y = writeLines(headcountTxt, 50, y, W - 100);
+          y += 8;
+        }
+      }
+      footer(page); doc.addPage(); page++;
+
+      // ============ Rituais ============
       newSection("Rituais ativos"); y = 110;
       doc.setFontSize(11); doc.setTextColor(...INK);
       if (bundle.rituals.length) {
-        bundle.rituals.forEach(r => {
+        bundle.rituals.forEach((r: any) => {
+          if (y > H - 100) { footer(page); doc.addPage(); page++; newSection("Rituais (cont.)"); y = 110; }
           doc.setFont("helvetica", "bold"); doc.setTextColor(...GREEN);
           y = writeLines(`■ ${r.name}`, 40, y, W - 80);
           doc.setFont("helvetica", "normal"); doc.setTextColor(...INK);
-          (r.agenda_json as any[] ?? []).forEach(item => {
-            y = writeLines(`   – ${item}`, 50, y, W - 100, 13);
+          ((r.agenda_json as any[]) ?? []).forEach((item: any) => {
+            const text = typeof item === "string" ? item : (item?.item ?? "");
+            y = writeLines(`   – ${text}`, 50, y, W - 100, 13);
           });
           y += 10;
         });
-      } else { doc.text("Nenhum ritual ativo ainda.", 40, y); }
+      } else {
+        doc.text("Nenhum ritual ativo ainda.", 40, y);
+      }
       footer(page); doc.addPage(); page++;
 
-      // Plano de ação 90 dias
+      // ============ Plano de ação 90 dias ============
       newSection("Plano de ação · próximos 90 dias"); y = 110;
       doc.setFontSize(11); doc.setTextColor(...INK);
       const actions = [
@@ -170,9 +335,27 @@ export default function ExportPDF() {
 
       doc.save(`StrategicOS_${(tenant.name ?? "plano").replace(/\s+/g, "_")}.pdf`);
       toast.success("PDF gerado!");
+
+      // Audit log
+      try {
+        if (tenantId) {
+          await (supabase.rpc as any)("log_event", {
+            p_tenant_id: tenantId,
+            p_action: "pdf_generated",
+            p_entity_type: "tenant",
+            p_entity_id: tenantId,
+            p_payload: { pages: page, generated_at: new Date().toISOString() },
+          });
+        }
+      } catch (e) {
+        captureError(e, { step: "log_event pdf_generated" });
+      }
     } catch (e: any) {
-      toast.error(e.message ?? "Erro ao gerar PDF");
-    } finally { setGenerating(false); }
+      captureError(e, { component: "ExportPDF.generate" });
+      toast.error(e?.message ?? "Erro ao gerar PDF");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -190,10 +373,12 @@ export default function ExportPDF() {
         <CardContent className="space-y-2 text-sm">
           <ul className="space-y-2">
             {[
-              "Capa branded O2inc × G4 com nome da empresa e data",
-              "Sumário executivo com score de maturidade e top 3 prioridades",
-              "Visão estratégica 5 / 3 / 1 ano",
+              "Capa branded O2inc × G4 com nome da empresa, CNPJ e data",
+              "Sumário executivo com score, top 3 prioridades e top 3 frameworks recomendados",
+              "Visão estratégica 5 / 3 / 1 ano (incluindo valores)",
               "OKRs vigentes com Key Results e progresso",
+              "Projeção financeira em 3 cenários (otimista / realista / pessimista) com DRE 5 anos",
+              "Estrutura de time recomendada por área com seniority + headcount sugerido",
               "Calendário de rituais ativos com agendas",
               "Plano de ação para os próximos 90 dias",
             ].map(t => <li key={t} className="flex gap-2"><span className="text-accent">›</span>{t}</li>)}

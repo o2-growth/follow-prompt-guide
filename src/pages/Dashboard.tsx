@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Compass, Target, TrendingUp, Users2, CalendarCheck, Gauge, FileDown, ArrowRight } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { EmptyState } from "@/components/common/EmptyState";
 
 const QUICK = [
   { to: "/vision", icon: Compass, label: "Editar visão" },
@@ -71,14 +72,25 @@ export default function Dashboard() {
             <CardTitle className="font-serif">Radar por dimensão</CardTitle>
           </CardHeader>
           <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={maturity ?? []}>
-                <PolarGrid stroke="hsl(var(--border))" />
-                <PolarAngleAxis dataKey="dim" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
-                <PolarRadiusAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                <Radar dataKey="score" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.35} />
-              </RadarChart>
-            </ResponsiveContainer>
+            {(maturity ?? []).every(d => (d.score ?? 0) === 0) ? (
+              <EmptyState
+                icon={Gauge}
+                title="Sem diagnóstico ainda"
+                description="Complete o assessment de 5 dimensões para visualizar seu radar de maturidade."
+                ctaLabel="Fazer diagnóstico"
+                ctaTo="/maturity"
+                density="sm"
+              />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={maturity ?? []}>
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis dataKey="dim" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
+                  <PolarRadiusAxis domain={[0, 100]} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                  <Radar dataKey="score" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.35} />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>

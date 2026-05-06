@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Compass } from "lucide-react";
+import { Compass, Lightbulb } from "lucide-react";
 
 const HORIZONS = [5, 3, 1] as const;
 
@@ -62,6 +62,18 @@ export default function Vision() {
           <p className="text-muted-foreground">Cascata 5 → 3 → 1 ano. Comece pelo horizonte mais longo.</p>
         </div>
       </div>
+      {plans !== undefined && plans.length === 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
+          <Lightbulb className="h-5 w-5 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="text-sm">
+            <p className="font-medium text-primary">Comece pela visão de 5 anos.</p>
+            <p className="text-muted-foreground mt-0.5">
+              É o horizonte aspiracional. Depois, refine para 3 anos (direção) e 1 ano (execução).
+              Cada salvamento é independente — não precisa preencher tudo de uma vez.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid lg:grid-cols-3 gap-6">
         {HORIZONS.map(h => (
           <Card key={h} className="shadow-soft">

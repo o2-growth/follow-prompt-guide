@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { CoBranding } from "@/components/branding/CoBranding";
 
 export function AuthLayout({ title, subtitle, children, footer }: {
   title: string; subtitle: string; children: React.ReactNode; footer: React.ReactNode;
@@ -16,7 +17,7 @@ export function AuthLayout({ title, subtitle, children, footer }: {
       <div className="hidden md:flex gradient-hero text-primary-foreground p-12 flex-col justify-between">
         <div>
           <div className="font-serif text-2xl font-bold">Strategic OS</div>
-          <div className="text-sm text-primary-foreground/70">O2inc × G4 Educação</div>
+          <div className="mt-2"><CoBranding size="sm" variant="dark" /></div>
         </div>
         <div>
           <p className="font-serif text-3xl leading-tight max-w-md">

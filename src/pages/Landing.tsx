@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Compass, Target, TrendingUp, Users2, CalendarCheck, Gauge, FileDown, CheckCircle2 } from "lucide-react";
+import { CoBranding } from "@/components/branding/CoBranding";
 
 const FEATURES = [
   { icon: Compass, title: "Visão 5/3/1", desc: "North star, missão e metas em cascata até a semana." },
@@ -17,13 +18,13 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-border/60 bg-background/80 backdrop-blur sticky top-0 z-30">
         <div className="container max-w-6xl flex items-center justify-between py-4">
-          <div>
+          <div className="flex flex-col gap-1">
             <div className="font-serif text-lg font-bold text-primary leading-tight">Strategic OS</div>
-            <div className="text-[11px] tracking-wide uppercase text-muted-foreground">O2inc × G4 Educação</div>
+            <CoBranding size="sm" variant="light" />
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm"><Link to="/auth/login">Entrar</Link></Button>
-            <Button asChild size="sm"><Link to="/auth/signup">Começar agora</Link></Button>
+            <Button asChild size="sm"><Link to="/auth/signup">Criar conta</Link></Button>
           </div>
         </div>
       </header>
@@ -46,17 +47,18 @@ export default function Landing() {
             <div className="mt-10 flex flex-col sm:flex-row gap-3">
               <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-gold">
                 <Link to="/auth/signup">
-                  Criar minha conta <ArrowRight className="ml-1 h-4 w-4" />
+                  Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
                 <Link to="/auth/login">Já tenho conta</Link>
               </Button>
             </div>
+            <p className="mt-3 text-sm text-primary-foreground/60">Sem cadastro de cartão. Acesso pleno.</p>
             <div className="mt-8 flex flex-wrap gap-6 text-sm text-primary-foreground/70">
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Em português, mobile e desktop</div>
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> PDF completo do plano</div>
-              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Sem custo, sem limites</div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Acesso pleno ao workspace</div>
             </div>
           </div>
         </div>
@@ -96,14 +98,20 @@ export default function Landing() {
             Capa branded O2inc + G4, sumário executivo, visão 5/3/1, OKRs, DRE em 3 cenários, 
             organograma recomendado, calendário de rituais e plano de ação 90 dias.
           </p>
-          <Button asChild size="lg"><Link to="/auth/signup">Começar meu plano <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
+          <Button asChild size="lg"><Link to="/auth/signup">Construir meu plano agora <ArrowRight className="ml-1 h-4 w-4" /></Link></Button>
         </div>
       </section>
 
       <footer className="border-t border-border py-8">
-        <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
-          <div>© {new Date().getFullYear()} O2inc · Strategic OS</div>
-          <div>Presente exclusivo · G4 Educação</div>
+        <div className="container max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <CoBranding size="sm" variant="light" />
+            <span className="hidden md:inline text-muted-foreground/60">·</span>
+            <span>© {new Date().getFullYear()} Strategic OS</span>
+          </div>
+          <div className="text-center md:text-right">
+            Bônus exclusivo · Palestra G4 Educação · Pedro Albite, CEO O2inc
+          </div>
         </div>
       </footer>
     </div>
