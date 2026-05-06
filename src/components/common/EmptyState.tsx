@@ -17,6 +17,8 @@ interface EmptyStateProps {
   ctaLabel?: string;
   /** Caminho para `<Link to=…>` interno (react-router). Mutuamente exclusivo com `ctaOnClick`. */
   ctaTo?: string;
+  /** URL externa (abre em nova aba). Mutuamente exclusivo com `ctaTo`/`ctaOnClick`. */
+  ctaHref?: string;
   /** Handler de clique. Mutuamente exclusivo com `ctaTo`. */
   ctaOnClick?: () => void;
   className?: string;
