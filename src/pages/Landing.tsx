@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Compass, Target, CalendarCheck, FileDown, CheckCircle2 } from "lucide-react";
 import { CoBranding } from "@/components/branding/CoBranding";
+import { LogoG4Tools } from "@/components/branding/LogoG4Tools";
 
 const PILLARS = [
   {
@@ -43,7 +44,7 @@ export default function Landing() {
         <div className="container max-w-6xl py-20 md:py-28">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-medium mb-6">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Presente exclusivo G4 Educação
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Presente exclusivo <LogoG4Tools height={14} className="ml-1" />
             </div>
             <h1 className="font-serif text-4xl md:text-6xl font-bold leading-tight tracking-tight">
               Transforme visão em <span className="text-accent">plano executável</span> de 5 anos.
@@ -120,7 +121,7 @@ export default function Landing() {
             <span>© {new Date().getFullYear()} Strategic OS</span>
           </div>
           <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-right">
-            <span>Bônus exclusivo · Palestra G4 Educação · Pedro Albite, CEO O2inc</span>
+            <span className="inline-flex items-center gap-2">Bônus exclusivo · <LogoG4Tools height={14} /> · Pedro Albite, CEO O2inc</span>
             <span className="hidden md:inline text-muted-foreground/40">·</span>
             <div className="flex items-center gap-3">
               <Link to="/privacidade" className="hover:text-primary underline-offset-4 hover:underline">Privacidade</Link>
