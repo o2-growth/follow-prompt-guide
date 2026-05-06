@@ -143,36 +143,33 @@ export default function ExportPDF() {
       };
 
       let page = 1;
-      const footer = () => {
-        doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
-        doc.line(MARGIN, H - 36, W - MARGIN, H - 36);
 
-        // Logos miniatura
-        const logoH = 11;
-        const o2W = drawLogoMuted("o2", MARGIN, H - 26, logoH);
-        doc.setFont(FONT.mono, "normal"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-        doc.text("×", MARGIN + o2W + 6, H - 18);
-        const g4W = drawLogoMuted("g4", MARGIN + o2W + 14, H - 26, logoH);
-
-        doc.setFont(FONT.mono, "normal"); doc.setFontSize(7); doc.setTextColor(...MUTED);
-        doc.text("STRATEGIC OS", MARGIN + o2W + g4W + 26, H - 18, { charSpace: 1.2 });
-        doc.text(`PÁG. ${String(page).padStart(2, "0")}`, W - MARGIN, H - 18, { align: "right", charSpace: 1.2 });
-      };
-
-      // Logos do footer/capa em cinza médio para não competir com conteúdo (usa overlay branco translúcido — alternativa: render direto, mas branco em fundo branco fica invisível).
-      // Solução prática: footer é fundo claro → renderizamos um "ghost" desenhando um retângulo cinza atrás é demais.
-      // Em vez disso, no footer (claro), usamos versão escura: como só temos o logo branco em PNG, desenhamos com pequeno overlay escuro via canvas. Para simplificar: desenhar em cinza médio dentro de um chip retangular escuro.
-      const drawLogoMuted = (which: "o2" | "g4", x: number, y: number, height: number) => {
-        // Desenha um chip ink-900 atrás do logo branco para ele aparecer no footer claro
+      // Logo no footer (fundo claro): logo PNG é branco → renderizamos dentro de um chip ink-900 para garantir contraste.
+      const drawLogoMuted = (which: "o2" | "g4", x: number, y2: number, height: number) => {
         const w = which === "o2" ? brand.o2Width : brand.g4Width;
         const h = which === "o2" ? brand.o2Height : brand.g4Height;
         const url = which === "o2" ? brand.o2White : brand.g4White;
         const drawW = (w / h) * height;
         const padX = 4, padY = 2;
         doc.setFillColor(...NAVY);
-        doc.roundedRect(x - padX, y - padY, drawW + padX * 2, height + padY * 2, 2, 2, "F");
-        doc.addImage(url, "PNG", x, y, drawW, height);
+        doc.roundedRect(x - padX, y2 - padY, drawW + padX * 2, height + padY * 2, 2, 2, "F");
+        doc.addImage(url, "PNG", x, y2, drawW, height);
         return drawW + padX * 2 + 2;
+      };
+
+      const footer = () => {
+        doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
+        doc.line(MARGIN, H - 36, W - MARGIN, H - 36);
+
+        const logoH = 11;
+        const o2W = drawLogoMuted("o2", MARGIN, H - 26, logoH);
+        doc.setFont(FONT.mono, "normal"); doc.setFontSize(8); doc.setTextColor(...MUTED);
+        doc.text("×", MARGIN + o2W + 4, H - 18);
+        const g4W = drawLogoMuted("g4", MARGIN + o2W + 14, H - 26, logoH);
+
+        doc.setFont(FONT.mono, "normal"); doc.setFontSize(7); doc.setTextColor(...MUTED);
+        doc.text("STRATEGIC OS", MARGIN + o2W + g4W + 26, H - 18, { charSpace: 1.2 });
+        doc.text(`PÁG. ${String(page).padStart(2, "0")}`, W - MARGIN, H - 18, { align: "right", charSpace: 1.2 });
       };
 
       const addPage = () => { footer(); doc.addPage(); page++; };
