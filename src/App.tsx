@@ -24,6 +24,7 @@ const Financial = lazy(() => import("@/pages/Financial"));
 const Team = lazy(() => import("@/pages/Team"));
 const Rituals = lazy(() => import("@/pages/Rituals"));
 const Maturity = lazy(() => import("@/pages/Maturity"));
+const Diagnostic360 = lazy(() => import("@/pages/Diagnostic360"));
 const ExportPDF = lazy(() => import("@/pages/ExportPDF"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const PrivacyPolicy = lazy(() => import("@/pages/legal/PrivacyPolicy"));
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/team" element={<Team />} />
               <Route path="/rituals" element={<Rituals />} />
               <Route path="/maturity" element={<Maturity />} />
+              <Route path="/diagnostic-360" element={<Diagnostic360 />} />
               <Route path="/export" element={<ExportPDF />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
