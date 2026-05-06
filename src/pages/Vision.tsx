@@ -43,10 +43,11 @@ export default function Vision() {
     const d = drafts[h];
     const existing = plans?.find(p => p.year_horizon === h);
     const values_json = d.values.split(",").map(v => v.trim()).filter(Boolean);
+    const payload = { north_star: d.north_star, mission: d.mission, values_json };
     if (existing) {
-      await supabase.from("vision_plans").update({ ...d, values_json }).eq("id", existing.id);
+      await supabase.from("vision_plans").update(payload).eq("id", existing.id);
     } else {
-      await supabase.from("vision_plans").insert({ tenant_id: tenantId, year_horizon: h, ...d, values_json });
+      await supabase.from("vision_plans").insert({ tenant_id: tenantId, year_horizon: h, ...payload });
     }
     toast.success(`Visão ${h} ano${h > 1 ? "s" : ""} salva`);
     qc.invalidateQueries({ queryKey: ["vision_plans", tenantId] });
